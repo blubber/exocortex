@@ -1,0 +1,41 @@
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/chat_web";
+
+@plugin "../vendor/heroicons";
+
+@theme {
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono:
+    "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  --color-bismuth-100: oklch(0.99 0.03 314);
+  --color-bismuth-200: oklch(0.9 0.03 314);
+  --color-bismuth-300: oklch(0.85 0.04 314);
+  --color-bismuth-400: oklch(0.78 0.3 314);
+  --color-bismuth-500: oklch(0.7 0.4 314);
+  --color-bismuth-600: oklch(0.52 0.3 314);
+  --color-bismuth-700: oklch(0.34 0.048 314);
+  --color-bismuth-800: oklch(0.26 0.035 314);
+  --color-bismuth-900: oklch(0.18 0.03 314);
+}
+
+/* Add variants based on LiveView classes */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session] {
+  display: contents;
+}
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+}
