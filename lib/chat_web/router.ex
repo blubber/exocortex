@@ -30,6 +30,10 @@ defmodule ChatWeb.Router do
       on_mount: [{ChatWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+
+      live "/thread", ThreadLive, :new
+      live "/thread/new", ThreadLive, :new
+      live "/thread/:public_id", ThreadLive, :thread
     end
 
     post "/users/update-password", UserSessionController, :update_password
@@ -49,7 +53,6 @@ defmodule ChatWeb.Router do
     delete "/users/log-out", UserSessionController, :delete
   end
 
-
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:chat, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
@@ -66,6 +69,4 @@ defmodule ChatWeb.Router do
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
-
-
 end

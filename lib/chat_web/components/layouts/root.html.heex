@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="w-full h-wull bg-bismuth-800 text-zinc-300">
+<html lang="en" class="w-full h-full bg-bismuth-800 text-zinc-300">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,7 +33,14 @@
       })();
     </script>
   </head>
-  <body>
+  <body class="h-full">
     {@inner_content}
+    <div class="fixed bottom-0 right-0 bg-black p-1 z-100" aria-hidden="true">
+      <div class="sm:hidden">xs</div>
+      <div class="hidden sm:block md:hidden">sm</div>
+      <div class="hidden md:block lg:hidden">md</div>
+      <div class="hidden lg:block xl:hidden">lg</div>
+      <div class="hidden xl:block">xl</div>
+    </div>
   </body>
 </html>

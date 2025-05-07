@@ -6,6 +6,70 @@ defmodule ChatWeb.CoreComponents do
 
   alias Phoenix.LiveView.JS
 
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :rest, :global
+
+  slot :inner_block, required: true
+  slot :action, required: false
+
+  def alert(assigns) do
+    ~H"""
+    <div
+      popover
+      id={@id}
+      {@rest}
+      class="m-auto bg-bismuth-900 text-zinc-300 rounded-lg border border-solid border-bismuth-800 shadow-black shadow-lg p-4 max-w-lg"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex gap-4 items-center">
+          <div class="flex-1">
+            <.title class="text-lg md:text-xl">{@title}</.title>
+          </div>
+          <div>
+            <button
+              type="button"
+              class="text-bismuth-200/70 hover:text-bismuth-200 cursor-pointer p-1.5"
+              popovertarget={@id}
+              popovertargetaction="hide"
+            >
+              <.icon name="hero-x-mark" class="size-4" />
+            </button>
+          </div>
+        </div>
+
+        <div>
+          {render_slot(@inner_block)}
+        </div>
+
+        <div :if={@action != []} class="flex gap-2 justify-end">
+          <div :for={action <- @action}>
+            {render_slot(action)}
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def toolbar(assigns) do
+    ~H"""
+    <nav class={[
+      "flex flex-row gap-2",
+      "fixed top-2 left-2 border border-solid px-2 py-1 rounded-lg",
+      "bg-bismuth-900 border-bismuth-700",
+      @class
+    ]}>
+      {render_slot(@inner_block)}
+    </nav>
+    """
+  end
+
   attr :level, :integer, default: 1
   attr :class, :any, default: nil
   attr :rest, :global
@@ -56,7 +120,7 @@ defmodule ChatWeb.CoreComponents do
     """
   end
 
-  attr :rest, :global, include: ~w(href navigate patch method)
+  attr :rest, :global, include: ~w(href navigate patch method popovertarget)
   attr :variant, :string, default: "primary"
   attr :class, :any, default: nil
 
@@ -78,6 +142,17 @@ defmodule ChatWeb.CoreComponents do
     end
   end
 
+  defp button_variant("blank") do
+    ""
+  end
+
+  defp button_variant("secondary") do
+    ~w(
+    transition-all cursor-pointer
+    p-1.5 text-bismuth-200/85 hover:text-bismuth-200
+  )
+  end
+
   defp button_variant("link") do
     ~w(underline text-bismuth-200 hover:no-underline hover:text-bismuth-400)
   end
@@ -87,6 +162,14 @@ defmodule ChatWeb.CoreComponents do
     rounded-md text-sm px-2 py-1 leading-6 cursor-pointer
     disabled:opacity-60 disabled:cursor-default
     bg-bismuth-600/80 hover:bg-bismuth-600
+  )
+  end
+
+  defp button_variant("danger") do
+    ~w(
+    rounded-md text-sm px-2 py-1 leading-6 cursor-pointer
+    disabled:opacity-60 disabled:cursor-default
+    bg-red-700 text-red-200
   )
   end
 
@@ -157,7 +240,6 @@ defmodule ChatWeb.CoreComponents do
     |> assign(field: nil, id: assigns.id || field.id)
     |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
     |> assign_new(:value, fn -> field.value end)
-    |> IO.inspect()
     |> input()
   end
 
@@ -215,8 +297,10 @@ defmodule ChatWeb.CoreComponents do
       id={@id}
       name={@name}
       class={[
-        @class || "w-full textarea",
-        @errors != [] && (@error_class || "textarea-error")
+        "block w-full outline-none ring-0 border border-solid rounded-md",
+        "text-sm px-2 py-1 focus:ring-1 focus-visible:ring-2",
+        "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
+        @class
       ]}
       {@rest}
     >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -232,8 +316,9 @@ defmodule ChatWeb.CoreComponents do
       value={Phoenix.HTML.Form.normalize_value(@type, @value)}
       class={[
         "block w-full outline-none ring-0 border border-solid rounded-md",
-        "text-sm px-2 py-1 leading-6 focus:ring-1 focus-visible:ring-2",
-        "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500"
+        "text-sm px-2 py-1 focus:ring-1 focus-visible:ring-2",
+        "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
+        @class
       ]}
       {@rest}
     />
@@ -247,69 +332,6 @@ defmodule ChatWeb.CoreComponents do
       <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
     </p>
-    """
-  end
-
-  @doc ~S"""
-  Renders a table with generic styling.
-
-  ## Examples
-
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id">{user.id}</:col>
-        <:col :let={user} label="username">{user.username}</:col>
-      </.table>
-  """
-  attr :id, :string, required: true
-  attr :rows, :list, required: true
-  attr :row_id, :any, default: nil, doc: "the function for generating the row id"
-  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
-
-  attr :row_item, :any,
-    default: &Function.identity/1,
-    doc: "the function for mapping each row before calling the :col and :action slots"
-
-  slot :col, required: true do
-    attr :label, :string
-  end
-
-  slot :action, doc: "the slot for showing user actions in the last table column"
-
-  def table(assigns) do
-    assigns =
-      with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
-        assign(assigns, row_id: assigns.row_id || fn {id, _item} -> id end)
-      end
-
-    ~H"""
-    <table class="table table-zebra">
-      <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
-            <span class="sr-only">{gettext("Actions")}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
-          >
-            {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
-              <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
     """
   end
 
@@ -340,24 +362,6 @@ defmodule ChatWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a [Heroicon](https://heroicons.com).
-
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
-
-  You can customize the size and colors of the icons by setting
-  width, height, and background color classes.
-
-  Icons are extracted from the `deps/heroicons` directory and bundled within
-  your compiled app.css by the plugin in `assets/vendor/heroicons.js`.
-
-  ## Examples
-
-      <.icon name="hero-x-mark" />
-      <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
-  """
   attr :name, :string, required: true
   attr :class, :string, default: "size-4"
 
@@ -367,32 +371,55 @@ defmodule ChatWeb.CoreComponents do
     """
   end
 
-  ## JS Commands
+  attr :id, :string
+  attr :title, :string, required: true
+  attr :rest, :global
 
-  def show(js \\ %JS{}, selector) do
-    JS.show(js,
-      to: selector,
-      time: 300,
-      transition:
-        {"transition-all ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
-    )
+  slot :header, required: false
+  slot :inner_block, required: true
+  slot :footer, required: false
+
+  def dialog(assigns) do
+    ~H"""
+    <dialog
+      id={@id}
+      phx-hook="Dialog"
+      {@rest}
+      class={[
+        "border border-solid",
+        "w-full bg-bismuth-800 border-bismuth-700 rounded-lg shadow-lg shadow-black open:flex flex-col gap-2 text-zinc-300",
+        "max-md:h-full max-md:top-[calc(1em+3px)] max-md:left-[calc(1em+3px)]",
+        "md:max-w-xl md:mx-auto md:mt-12 md:max-h-[calc(100%-2em-6px-8rem)]"
+      ]}
+      aria-labelledby={"#{@id}-title"}
+    >
+      <header class="flex flex-col gap-2">
+        <div class="flex gap-4 justify-between p-2 items-center">
+          <div>
+            <.title class="text-base md:text-lg" id={"#{@id}-title"}>{@title}</.title>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              class="text-bismuth-200/70 hover:text-bismuth-200 cursor-pointer p-1.5"
+              phx-click={JS.dispatch(":close", to: "##{@id}")}
+            >
+              <.icon name="hero-x-mark" class="size-4" />
+            </button>
+          </div>
+        </div>
+        <div :if={@header != []}>
+          {render_slot(@header)}
+        </div>
+      </header>
+      <div class="flex-1 flex flex-col flex-1 overflow-y-auto p-2 md:p-4">
+        {render_slot(@inner_block)}
+      </div>
+    </dialog>
+    """
   end
 
-  def hide(js \\ %JS{}, selector) do
-    JS.hide(js,
-      to: selector,
-      time: 200,
-      transition:
-        {"transition-all ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
-    )
-  end
-
-  @doc """
-  Translates an error message using gettext.
-  """
   def translate_error({msg, opts}) do
     # When using gettext, we typically pass the strings we want
     # to translate as a static argument:
@@ -411,9 +438,6 @@ defmodule ChatWeb.CoreComponents do
     end
   end
 
-  @doc """
-  Translates the errors for a field from a keyword list of errors.
-  """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end

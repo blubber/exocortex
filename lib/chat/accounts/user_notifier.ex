@@ -9,7 +9,7 @@ defmodule Chat.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Chat", "contact@example.com"})
+      |> from({"Chat", "support@2238.chat"})
       |> subject(subject)
       |> text_body(body)
 

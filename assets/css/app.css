@@ -13,15 +13,17 @@
     "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
 
-  --color-bismuth-100: oklch(0.99 0.03 314);
-  --color-bismuth-200: oklch(0.9 0.03 314);
-  --color-bismuth-300: oklch(0.85 0.04 314);
-  --color-bismuth-400: oklch(0.78 0.3 314);
-  --color-bismuth-500: oklch(0.7 0.4 314);
-  --color-bismuth-600: oklch(0.52 0.3 314);
-  --color-bismuth-700: oklch(0.34 0.048 314);
-  --color-bismuth-800: oklch(0.26 0.035 314);
-  --color-bismuth-900: oklch(0.18 0.03 314);
+  --color-bismuth-50: oklch(0.96 0.015 285); /* Very light, grayish purple */
+  --color-bismuth-100: oklch(0.91 0.04 285);
+  --color-bismuth-200: oklch(0.83 0.08 285);
+  --color-bismuth-300: oklch(0.74 0.12 285);
+  --color-bismuth-400: oklch(0.64 0.16 285);
+  --color-bismuth-500: oklch(0.54 0.2 285); /* Peak saturation */
+  --color-bismuth-600: oklch(0.45 0.18 285);
+  --color-bismuth-700: oklch(0.35 0.14 285);
+  --color-bismuth-800: oklch(0.25 0.1 285);
+  --color-bismuth-900: oklch(0.15 0.06 285);
+  --color-bismuth-950: oklch(0.08 0.025 285); /* Very dark, grayish purple */
 }
 
 /* Add variants based on LiveView classes */
@@ -37,5 +39,183 @@
 @layer base {
   * {
     min-width: 0;
+  }
+
+  dialog {
+    transition-property: display overlay transform;
+    transition-duration: 250ms;
+    transition-behavior: allow-discrete;
+    opacity: 0;
+    transform: scale(0);
+
+    &[open] {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  dialog::backdrop {
+    background-color: var(--color-bismuth-900);
+    transition-property: opacity display overlay;
+    transition-duration: 150;
+    transition-delay: 100ms;
+    transition-behavior: allow-discrete;
+    opacity: 0;
+  }
+
+  dialog[open]::backdrop {
+    opacity: 0.75;
+  }
+
+  @starting-style {
+    dialog[open] {
+      transform: scale(0);
+    }
+
+    dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  #model-selector-trigger {
+    anchor-name: --model-selector-trigger;
+  }
+
+  #model-selector {
+    position: absolute;
+    position-anchor: --model-selector-trigger;
+    position-area: bottom span-right;
+    width: 20rem;
+
+    &::backdrop {
+      backdrop-filter: grayscale(100%) brightness(95%);
+    }
+  }
+
+  @media (max-width: 40rem) {
+    #model-selector {
+      width: 100%;
+      margin-left: calc(-16 * var(--spacing));
+    }
+  }
+}
+
+@layer components {
+  .markdown {
+    line-height: calc(6 * var(--spacing));
+
+    > p,
+    > pre,
+    > ol,
+    > ul,
+    > blockquote {
+      margin-bottom: calc(8 * var(--spacing));
+    }
+
+    > p:last-child,
+    > pre:last-child,
+    > ol:last-child,
+    > ul:last-child,
+    > blockquote:last-child {
+      margin-bottom: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: var(--tracking-tight); /* -0.025em */
+      margin-top: calc(8 * var(--spacing));
+      margin-bottom: calc(6 * var(--spacing));
+    }
+
+    h1 {
+      font-size: var(--text-4xl);
+      line-height: var(--text-4xl--line-height);
+    }
+    h2 {
+      font-size: var(--text-3xl);
+      line-height: var(--text-3xl--line-height);
+    }
+    h3 {
+      font-size: var(--text-2xl);
+      line-height: var(--text-2xl--line-height);
+    }
+    h4 {
+      font-size: var(--text-xl);
+      line-height: var(--text-xl--line-height);
+    }
+    h5 {
+      font-size: var(--text-lg);
+      line-height: var(--text-lg--line-height);
+    }
+    h6 {
+      font-size: var(--text-base);
+      line-height: var(--text-base--line-height);
+    }
+
+    strong {
+      font-weight: var(--font-weight-bold);
+    }
+
+    > ul,
+    > ol,
+    > pre,
+    > blockquote {
+      background-color: var(--color-bismuth-900);
+      padding: calc(2 * var(--spacing));
+      border-radius: var(--radius-lg);
+      border: 2px solid white;
+    }
+
+    blockquote {
+      border-left-width: 4px;
+    }
+
+    ol,
+    ul {
+      margin-left: calc(4 * var(--spacing));
+      padding-left: calc(6 * var(--spacing));
+
+      li {
+        margin-top: calc(2 * var(--spacing));
+      }
+      li::marker {
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-zinc-400);
+      }
+    }
+    ol {
+      list-style: decimal;
+    }
+    ul {
+      list-style: disc;
+    }
+  }
+
+  a {
+    text-decoration: underline;
+    color: var(--color-bismuth-300);
+
+    &:hover {
+      text-decoration: none;
+      color: var(--color-bismuth-200);
+    }
+  }
+
+  th {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--text-sm);
+    color: var(--color-zinc-400);
+    border-bottom: 1px double var(--color-zinc-400);
+  }
+
+  td,
+  th {
+    padding: calc(2 * var(--spacing));
   }
 }

@@ -2,6 +2,8 @@ defmodule Chat.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Chat.Models.Model
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -10,6 +12,8 @@ defmodule Chat.Accounts.User do
     field :authenticated_at, :utc_datetime, virtual: true
 
     timestamps(type: :utc_datetime)
+
+    belongs_to :default_model, Model
   end
 
   @doc """
