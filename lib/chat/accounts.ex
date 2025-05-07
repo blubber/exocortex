@@ -7,6 +7,16 @@ defmodule Chat.Accounts do
   alias Chat.Repo
 
   alias Chat.Accounts.{User, UserToken, UserNotifier}
+  alias Chat.Models.Model
+
+  def set_default_model(user, %Model{} = model) do
+    {:ok, user} =
+      user
+      |> Ecto.Changeset.change(default_model_id: model.id)
+      |> Repo.update()
+
+    user
+  end
 
   ## Database getters
 

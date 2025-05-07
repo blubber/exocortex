@@ -14,13 +14,7 @@ defmodule ChatWeb.UserLive.Settings do
       </.header>
 
       <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-        <.input
-          field={@email_form[:email]}
-          type="email"
-          label="Email"
-          autocomplete="username"
-          required
-        />
+        <.input field={@email_form[:email]} type="email" autocomplete="username" required />
         <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
       </.form>
 
@@ -45,14 +39,12 @@ defmodule ChatWeb.UserLive.Settings do
         <.input
           field={@password_form[:password]}
           type="password"
-          label="New password"
           autocomplete="new-password"
           required
         />
         <.input
           field={@password_form[:password_confirmation]}
           type="password"
-          label="Confirm new password"
           autocomplete="new-password"
         />
         <.button variant="primary" phx-disable-with="Saving...">
