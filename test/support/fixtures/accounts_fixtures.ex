@@ -85,4 +85,20 @@ defmodule Chat.AccountsFixtures do
       set: [inserted_at: dt, authenticated_at: dt]
     )
   end
+
+  @doc """
+  Generate a access_key.
+  """
+  def access_key_fixture(scope, attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        public_id: "some public_id",
+        sponsor_id: 42,
+        used_at: ~U[2025-05-24 12:02:00Z],
+        user_id: 42
+      })
+
+    {:ok, access_key} = Chat.Accounts.create_access_key(scope, attrs)
+    access_key
+  end
 end

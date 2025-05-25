@@ -21,23 +21,23 @@ defmodule ChatWeb.ThreadLive do
         <.button
           aria-label="Search chat history"
           class="block"
-          variant="secondary"
+          variant="toolbar"
           phx-click={JS.dispatch(":open", to: "#thread-history-dialog")}
           data-kb="Mk"
         >
-          <.icon name="hero-chat-bubble-bottom-center-text" class="size-4" />
+          <.icon name="hero-chat-bubble-bottom-center-text" class="size-5 md:size-4" />
         </.button>
         <.button
           aria-label="Start a new conversation thread"
           class="block"
-          variant="secondary"
-          phx-click={JS.navigate(~p"/chat/new")}
+          variant="toolbar"
+          phx-click={JS.navigate(~p"/thread/new")}
           data-kb="MSo"
         >
-          <.icon name="hero-plus" class="size-4" />
+          <.icon name="hero-plus" class="size-5 md:size-4" />
         </.button>
         <.button
-          variant="secondary"
+          variant="toolbar"
           class="flex gap-1 items-center text-sm"
           popovertarget="model-selector"
           id="model-selector-trigger"
@@ -48,10 +48,6 @@ defmodule ChatWeb.ThreadLive do
           <div>
             <.icon name="hero-chevron-down" class="size-4" />
           </div>
-        </.button>
-
-        <.button type="secondary" popovertarget="delete-alert">
-          <.icon name="hero-bug-ant" class="size-4" />
         </.button>
       </.toolbar>
 
@@ -276,13 +272,13 @@ defmodule ChatWeb.ThreadLive do
           id={id}
           data-list-item={if(thread.title == "", do: "New Chat", else: thread.title)}
         >
-          <.link
-            navigate={"/chat/#{thread.public_id}"}
+          <.button
+            navigate={"/thread/#{thread.public_id}"}
             variant="blank"
             class="block w-full rounded-md text-start p-2 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-solid border-transparent hover:border-bismuth-700 transition-all my-1"
           >
             {if(thread.title == "", do: "New Chat", else: thread.title)}
-          </.link>
+          </.button>
         </li>
       </ul>
     </.dialog>
@@ -330,7 +326,7 @@ defmodule ChatWeb.ThreadLive do
 
     {:noreply,
      socket
-     |> push_navigate(to: ~p"/chat/#{thread.public_id}")}
+     |> push_navigate(to: ~p"/thread/#{thread.public_id}")}
   end
 
   def handle_event("select-model", %{"model" => public_id}, socket) do
@@ -364,7 +360,7 @@ defmodule ChatWeb.ThreadLive do
 
     socket
     |> assign(thread: thread, current_scope: Map.put(scope, :thread, thread))
-    |> push_navigate(to: ~p"/chat/#{thread.public_id}")
+    |> push_navigate(to: ~p"/thread/#{thread.public_id}")
     |> prompt(prompt)
   end
 

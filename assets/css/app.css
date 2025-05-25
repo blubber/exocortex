@@ -102,22 +102,69 @@
 
 @layer components {
   .markdown {
-    line-height: calc(6 * var(--spacing));
+    line-height: calc(1.15 * var(--text-base--line-height));
 
-    > p,
-    > pre,
-    > ol,
-    > ul,
-    > blockquote {
+    p,
+    pre,
+    blockquote {
+      margin-top: calc(8 * var(--spacing));
       margin-bottom: calc(8 * var(--spacing));
     }
 
-    > p:last-child,
-    > pre:last-child,
-    > ol:last-child,
-    > ul:last-child,
-    > blockquote:last-child {
-      margin-bottom: 0;
+    blockquote {
+      width: 100%;
+      margin-left: calc(6 * var(--spacing));
+      padding-left: calc(4 * var(--spacing));
+      padding-right: calc(2 * var(--spacing));
+      border-left: 2px solid var(--color-red-400);
+    }
+
+    code {
+      font-family: var(--font-mono);
+    }
+
+    div > ul,
+    div > ol {
+      margin-top: calc(8 * var(--spacing));
+      margin-bottom: calc(8 * var(--spacing));
+    }
+
+    ol,
+    ul {
+      padding-left: 2rem;
+    }
+
+    ol {
+      list-style: decimal;
+    }
+
+    div > ul {
+      list-style: disc;
+    }
+
+    ul ul {
+      list-style: circle;
+    }
+
+    li {
+      margin-top: calc(2 * var(--spacing));
+      margin-bottom: calc(2 * var(--spacing));
+    }
+
+    li::marker {
+      color: var(--color-red-400);
+      font-size: var(--text-sm);
+    }
+
+    a {
+      color: var(--color-red-400);
+      opacity: 0.9;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+        opacity: 1;
+      }
     }
 
     h1,
@@ -126,96 +173,35 @@
     h4,
     h5,
     h6 {
+      letter-spacing: var(--tracking-tight);
       font-weight: var(--font-weight-semibold);
-      letter-spacing: var(--tracking-tight); /* -0.025em */
-      margin-top: calc(8 * var(--spacing));
-      margin-bottom: calc(6 * var(--spacing));
-    }
-
-    h1 {
-      font-size: var(--text-4xl);
-      line-height: var(--text-4xl--line-height);
-    }
-    h2 {
-      font-size: var(--text-3xl);
-      line-height: var(--text-3xl--line-height);
-    }
-    h3 {
-      font-size: var(--text-2xl);
-      line-height: var(--text-2xl--line-height);
-    }
-    h4 {
-      font-size: var(--text-xl);
-      line-height: var(--text-xl--line-height);
-    }
-    h5 {
-      font-size: var(--text-lg);
-      line-height: var(--text-lg--line-height);
-    }
-    h6 {
-      font-size: var(--text-base);
-      line-height: var(--text-base--line-height);
-    }
-
-    strong {
-      font-weight: var(--font-weight-bold);
-    }
-
-    > ul,
-    > ol,
-    > pre,
-    > blockquote {
-      background-color: var(--color-bismuth-900);
-      padding: calc(2 * var(--spacing));
-      border-radius: var(--radius-lg);
-      border: 2px solid white;
-    }
-
-    blockquote {
-      border-left-width: 4px;
-    }
-
-    ol,
-    ul {
-      margin-left: calc(4 * var(--spacing));
-      padding-left: calc(6 * var(--spacing));
-
-      li {
-        margin-top: calc(2 * var(--spacing));
-      }
-      li::marker {
-        font-size: var(--text-sm);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-zinc-400);
-      }
-    }
-    ol {
-      list-style: decimal;
-    }
-    ul {
-      list-style: disc;
     }
   }
 
-  a {
-    text-decoration: underline;
-    color: var(--color-bismuth-300);
-
-    &:hover {
-      text-decoration: none;
-      color: var(--color-bismuth-200);
-    }
+  h1 {
+    font-size: var(--text-xl);
+    line-height: calc(1.5 * var(--text-xl--line-height));
   }
-
-  th {
-    font-weight: var(--font-weight-semibold);
+  h2 {
+    font-size: var(--text-lg);
+    line-height: calc(1.5 * var(--text-lg--line-height));
+  }
+  h3 {
+    font-size: var(--text-base);
+    line-height: calc(1.5 * var(--text-base--line-height));
+  }
+  h4 {
     font-size: var(--text-sm);
-    color: var(--color-zinc-400);
-    border-bottom: 1px double var(--color-zinc-400);
+    line-height: calc(1.5 * var(--text-sm--line-height));
   }
-
-  td,
-  th {
-    padding: calc(2 * var(--spacing));
+  h5 {
+    opacity: 0.9;
+    font-size: var(--text-sm);
+    line-height: calc(1.5 * var(--text-sm--line-height));
+  }
+  h6 {
+    opacity: 0.8;
+    font-size: var(--text-sm);
+    line-height: calc(1.5 * var(--text-sm--line-height));
   }
 }

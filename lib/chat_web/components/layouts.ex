@@ -21,11 +21,11 @@ defmodule ChatWeb.Layouts do
 
   def focus(assigns) do
     ~H"""
-    <main class={["mx-auto max-w-sm p-2 md:p-4 mt-16 md:mt-24", @class]} aria-live="polite">
-      <div class="w-full">
+    <div class="h-full p-2 md:p-4 flex justify-center mt-8 md:mt-12">
+      <main class={["max-w-md", @class]}>
         {render_slot(@inner_block)}
-      </div>
-    </main>
+      </main>
+    </div>
     """
   end
 

@@ -5,77 +5,78 @@ defmodule ChatWeb.UserLive.Login do
 
   def render(assigns) do
     ~H"""
-    <Layouts.focus current_scope={@current_scope}>
-      <div class={[
-        "starting:opacity-0 transition-all transition-discrete duration-200",
-        if(@email != nil, do: "hidden opacity-0", else: "opacity-100")
-      ]}>
-        <.header class="text-center">
-          Log in
-          <:subtitle>
-            <%= if @current_scope do %>
-              You need to reauthenticate to perform sensitive actions on your account.
-            <% else %>
-              Don't have an account? <.link
-                navigate={~p"/users/register"}
-                class="font-semibold"
-                phx-no-format
-              >Sign up</.link> for an account now.
-            <% end %>
-          </:subtitle>
-        </.header>
+    <Layouts.focus current_scope={@current_scope} class="flex flex-col gap-8 md:gap-12">
+      <.header class="text-center">
+        Log in
+        <:subtitle>
+          Log in using your email and password, or just your email. Don't have an
+          account yet? <.link navigate={~p"/users/register"} class="font-semibold">Sign up for free</.link>.
+        </:subtitle>
+      </.header>
+
+      <div class="borderborder-bismuth-700 flex flex-col gap-4 rounded-lg bg-bismuth-900 p-2 sm:p-4">
+        <div :if={@state == :error} class="flex gap-6 mb-8">
+          <div>
+            <.icon name="hero-exclamation-circle" class="size-6 text-red-400" />
+          </div>
+          <div>
+            <.title class="text-lg text-red-400">Unable to log in</.title>
+            <p class="text-sm text-zinc-400">
+              The email address and/or password where incorrect, please tryr again. If you
+              forgot your password you can sign in with just your email by leaving the password field
+              blank.
+            </p>
+          </div>
+        </div>
 
         <.form
-          :let={f}
           for={@form}
-          id="login_form_magic"
+          phx-submit="submit"
+          class="contents"
+          phx-trigger-action={@trigger_submit}
           action={~p"/users/log-in"}
-          phx-submit="submit_magic"
-          class="flex flex-col gap-6"
         >
-          <.fieldset field={f[:email]} label="Email">
-            <.input
-              readonly={!!@current_scope}
-              field={f[:email]}
-              type="email"
-              autocomplete="username"
-              required
-              phx-mounted={JS.focus()}
-            />
-          </.fieldset>
+          <div class="flex flex-col gap-1">
+            <.label for={@form[:email].id}>Email address</.label>
+            <.input field={@form[:email]} type="email" required />
+          </div>
 
-          <.button class="w-full" variant="primary">
-            Log in with email <span aria-hidden="true">→</span>
-          </.button>
-        </.form>
-      </div>
-      <div class={[
-        "starting:opacity-0 transition-all transition-discrete duration-200 delay-200",
-        if(@email == nil, do: "hidden opacity-0", else: "opacity-100")
-      ]}>
-        <.header>
-          Check your inbox
-          <:subtitle>
-            An email was sent to <strong class="font-semibold">{@email}</strong> with a
-            login link. If you don't receive the email please try again.
-          </:subtitle>
-          <:actions>
-            <.button navigate={~p"/users/log-in"} variant="primary">
-              Try again
+          <div class="flex flex-col gap-1">
+            <.label for={@form[:password].id} required={false}>Password</.label>
+            <.input field={@form[:password]} type="password" />
+            <div class="text-sm text-zinc-400 px-2">
+              Leave blank to log in using email only.
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-8">
+            <.button variant="primary" type="submit" disabled={@state == :confirm}>
+              Log in
             </.button>
-          </:actions>
-        </.header>
+          </div>
+        </.form>
       </div>
     </Layouts.focus>
     """
   end
 
   def mount(_params, _session, socket) do
-    form = to_form(%{"email" => ""}, as: "user")
-    {:ok, assign(socket, form: form, email: nil)}
+    email = socket.assigns[:flash]["email"]
+
+    form =
+      to_form(
+        %{"email" => email || "", "password" => ""},
+        as: "user"
+      )
+
+    {:ok, assign(socket, state: email && :error, form: form, trigger_submit: false)}
   end
 
-  def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
+  def handle_event(
+        "submit",
+        %{"user" => %{"email" => email, "password" => ""} = params},
+        socket
+      ) do
     if user = Accounts.get_user_by_email(email) do
       Accounts.deliver_login_instructions(
         user,
@@ -83,6 +84,12 @@ defmodule ChatWeb.UserLive.Login do
       )
     end
 
-    {:noreply, assign(socket, email: email)}
+    form = to_form(params, as: "user")
+
+    {:noreply, assign(socket, confirm: user && :confirm, form: form)}
+  end
+
+  def handle_event("submit", _params, socket) do
+    {:noreply, assign(socket, state: :confirm, trigger_submit: true)}
   end
 end

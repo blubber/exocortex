@@ -6,7 +6,7 @@ defmodule Chat.Accounts do
   import Ecto.Query, warn: false
   alias Chat.Repo
 
-  alias Chat.Accounts.{User, UserToken, UserNotifier}
+  alias Chat.Accounts.{User, UserToken, UserNotifier, AccessKey}
   alias Chat.Models.Model
 
   def set_default_model(user, %Model{} = model) do
@@ -18,76 +18,38 @@ defmodule Chat.Accounts do
     user
   end
 
-  ## Database getters
-
-  @doc """
-  Gets a user by email.
-
-  ## Examples
-
-      iex> get_user_by_email("foo@example.com")
-      %User{}
-
-      iex> get_user_by_email("unknown@example.com")
-      nil
-
-  """
   def get_user_by_email(email) when is_binary(email) do
     Repo.get_by(User, email: email)
   end
 
-  @doc """
-  Gets a user by email and password.
-
-  ## Examples
-
-      iex> get_user_by_email_and_password("foo@example.com", "correct_password")
-      %User{}
-
-      iex> get_user_by_email_and_password("foo@example.com", "invalid_password")
-      nil
-
-  """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
     if User.valid_password?(user, password), do: user
   end
 
-  @doc """
-  Gets a single user.
-
-  Raises `Ecto.NoResultsError` if the User does not exist.
-
-  ## Examples
-
-      iex> get_user!(123)
-      %User{}
-
-      iex> get_user!(456)
-      ** (Ecto.NoResultsError)
-
-  """
   def get_user!(id), do: Repo.get!(User, id)
 
-  ## User registration
-
-  @doc """
-  Registers a user.
-
-  ## Examples
-
-      iex> register_user(%{field: value})
-      {:ok, %User{}}
-
-      iex> register_user(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def register_user(attrs) do
-    %User{}
-    |> User.email_changeset(attrs)
-    |> Repo.insert()
+    with changeset = User.registration_changeset(%User{}, attrs, hash_password: true),
+         access_key_id <- Ecto.Changeset.get_change(changeset, :access_key),
+         %AccessKey{} = access_key <- get_access_key(access_key_id),
+         multi <-
+           Ecto.Multi.new()
+           |> Ecto.Multi.insert(:user, changeset)
+           |> Ecto.Multi.run(:access_key, fn _repo, %{user: %User{} = user} ->
+             access_key
+             |> AccessKey.changeset(user)
+             |> Repo.update()
+           end),
+         {:ok, %{user: %User{} = user}} <- Repo.transaction(multi) do
+      {:ok, user}
+    else
+      nil ->
+        User.registration_changeset(%User{}, attrs)
+        |> Ecto.Changeset.add_error(:access_key, "Invalid key")
+        |> Ecto.Changeset.apply_action(:insert)
+    end
   end
 
   ## Settings
@@ -314,5 +276,17 @@ defmodule Chat.Accounts do
            |> Repo.transaction() do
       {:ok, user, expired_tokens}
     end
+  end
+
+  def get_access_key(public_id) when is_binary(public_id) do
+    Repo.one(
+      from key in AccessKey,
+        where: is_nil(key.user_id) and key.public_id == ^public_id
+    )
+  end
+
+  def create_access_key(%User{} = sponsor) do
+    AccessKey.changeset(sponsor)
+    |> Repo.insert()
   end
 end

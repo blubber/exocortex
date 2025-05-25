@@ -60,7 +60,7 @@ defmodule ChatWeb.CoreComponents do
   def toolbar(assigns) do
     ~H"""
     <nav class={[
-      "flex flex-row gap-2",
+      "flex gap-1",
       "fixed top-2 left-2 border border-solid px-2 py-1 rounded-lg",
       "bg-bismuth-900 border-bismuth-700",
       @class
@@ -107,20 +107,22 @@ defmodule ChatWeb.CoreComponents do
   end
 
   attr :rest, :global, include: ~w(href navigate patch method)
-  attr :variant, :string, default: "link"
   attr :class, :any, default: nil
 
   slot :inner_block, required: true
 
   def link(assigns) do
     ~H"""
-    <Phoenix.Component.link class={[button_variant(@variant), @class]} {@rest}>
+    <Phoenix.Component.link
+      class={["text-red-400/90 hover:text-red-400 underline hover:no-underline", @class]}
+      {@rest}
+    >
       {render_slot(@inner_block)}
     </Phoenix.Component.link>
     """
   end
 
-  attr :rest, :global, include: ~w(href navigate patch method popovertarget)
+  attr :rest, :global, include: ~w(href navigate patch method popovertarget disabled)
   attr :variant, :string, default: "primary"
   attr :class, :any, default: nil
 
@@ -143,26 +145,25 @@ defmodule ChatWeb.CoreComponents do
   end
 
   defp button_variant("blank") do
-    ""
+    button_style([])
   end
 
-  defp button_variant("secondary") do
+  defp button_variant("toolbar") do
     ~w(
-    transition-all cursor-pointer
-    p-1.5 text-bismuth-200/85 hover:text-bismuth-200
+    transition-all
+    p-2 md:p-1.5 text-bismuth-200/85 hover:text-bismuth-200
   )
   end
 
   defp button_variant("link") do
-    ~w(underline text-bismuth-200 hover:no-underline hover:text-bismuth-400)
+    button_style(~w(text-red-300 hover:not-disabled:text-red-200 underline hover:no-underline))
   end
 
   defp button_variant("primary") do
-    ~w(
-    rounded-md text-sm px-2 py-1 leading-6 cursor-pointer
-    disabled:opacity-60 disabled:cursor-default
-    bg-bismuth-600/80 hover:bg-bismuth-600
-  )
+    button_style(~w(
+      bg-linear-to-t from-red-500/85 to-red-500/90
+      hover:not-disabled:from-red-500/96 hover:not-disabled:to-red-500
+    ))
   end
 
   defp button_variant("danger") do
@@ -173,7 +174,15 @@ defmodule ChatWeb.CoreComponents do
   )
   end
 
+  defp button_style(class_list) do
+    ~w(
+      transition-all
+      text-sm px-3 py-2 font-semibold disabled:opacity-75
+  ) ++ class_list
+  end
+
   attr :for, :string, required: true
+  attr :required, :boolean, default: true
 
   slot :inner_block, required: true
 
@@ -181,6 +190,7 @@ defmodule ChatWeb.CoreComponents do
     ~H"""
     <label for={@for} class="block w-full font-semibold text-sm">
       {render_slot(@inner_block)}
+      <span :if={!@required} class="text-xs text-zinc-400">(optional)</span>
     </label>
     """
   end
@@ -203,19 +213,10 @@ defmodule ChatWeb.CoreComponents do
     |> fieldset()
   end
 
-  def fieldset(assigns) do
-    ~H"""
-    <fieldset>
-      <.label for={@id}>{@label}</.label>
-      {render_slot(@inner_block)}
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </fieldset>
-    """
-  end
-
   attr :id, :any, default: nil
   attr :name, :any
   attr :value, :any
+  attr :errors, :list, default: []
 
   attr :type, :string,
     default: "text",
@@ -236,8 +237,11 @@ defmodule ChatWeb.CoreComponents do
                 multiple pattern placeholder readonly required rows size step)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
+    |> assign(:errors, Enum.map(errors, &translate_error(&1)))
     |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
     |> assign_new(:value, fn -> field.value end)
     |> input()
@@ -309,26 +313,35 @@ defmodule ChatWeb.CoreComponents do
 
   def input(assigns) do
     ~H"""
-    <input
-      type={@type}
-      name={@name}
-      id={@id}
-      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-      class={[
-        "block w-full outline-none ring-0 border border-solid rounded-md",
-        "text-sm px-2 py-1 focus:ring-1 focus-visible:ring-2",
-        "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
-        @class
-      ]}
-      {@rest}
-    />
+    <div class="contents" aria-live="polite">
+      <input
+        type={@type}
+        name={@name}
+        id={@id}
+        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        aria-invalid={@errors != [] && "true"}
+        aria-describedby={@errors != [] && "#{@id}-error"}
+        class={[
+          "block w-full outline-none ring-0 border border-solid rounded-md",
+          "text-sm px-3 py-2 focus:ring-1 focus-visible:ring-2",
+          "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
+          @class
+        ]}
+        {@rest}
+      />
+
+      <.error :if={@errors != []} id={"#{@id}-error"}>{hd(@errors)}</.error>
+    </div>
     """
   end
 
-  # Helper used by inputs to generate form errors
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+    <p class="mt-1.5 flex gap-2 items-center text-sm text-error" {@rest}>
       <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
     </p>

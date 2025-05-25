@@ -9,7 +9,7 @@ defmodule ChatWeb.UserAuth do
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
-  @max_cookie_age_in_days 14
+  @max_cookie_age_in_days 365
   @remember_me_cookie "_chat_web_user_remember_me"
   @remember_me_options [
     sign: true,
@@ -110,7 +110,7 @@ defmodule ChatWeb.UserAuth do
   # renew_session function to customize this behaviour.
   defp create_or_extend_session(conn, user, params) do
     token = Accounts.generate_user_session_token(user)
-    remember_me = get_session(conn, :user_remember_me)
+    remember_me = true
 
     conn
     |> renew_session(user)
