@@ -302,7 +302,7 @@ defmodule ChatWeb.CoreComponents do
       name={@name}
       class={[
         "block w-full outline-none ring-0 border border-solid rounded-md",
-        "text-sm px-2 py-1 focus:ring-1 focus-visible:ring-2",
+        "px-2 py-1 focus:ring-1 focus-visible:ring-2",
         "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
         @class
       ]}
@@ -323,7 +323,7 @@ defmodule ChatWeb.CoreComponents do
         aria-describedby={@errors != [] && "#{@id}-error"}
         class={[
           "block w-full outline-none ring-0 border border-solid rounded-md",
-          "text-sm px-3 py-2 focus:ring-1 focus-visible:ring-2",
+          "px-3 py-2 focus:ring-1 focus-visible:ring-2",
           "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
           @class
         ]}

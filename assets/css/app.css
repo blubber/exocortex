@@ -104,9 +104,9 @@
   .markdown {
     line-height: calc(1.15 * var(--text-base--line-height));
 
-    p,
-    pre,
-    blockquote {
+    p:not(:last-child):not(:first-child),
+    pre:not(:last-child):not(:first-child),
+    blockquote:not(:last-child):not(:first-child) {
       margin-top: calc(8 * var(--spacing));
       margin-bottom: calc(8 * var(--spacing));
     }

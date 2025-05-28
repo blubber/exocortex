@@ -17,57 +17,9 @@ defmodule ChatWeb.ThreadLive do
     flex-col
       h-full
       ">
-      <.toolbar aria-label="Toolbar">
-        <.button
-          aria-label="Search chat history"
-          class="block"
-          variant="toolbar"
-          phx-click={JS.dispatch(":open", to: "#thread-history-dialog")}
-          data-kb="Mk"
-        >
-          <.icon name="hero-chat-bubble-bottom-center-text" class="size-5 md:size-4" />
-        </.button>
-        <.button
-          aria-label="Start a new conversation thread"
-          class="block"
-          variant="toolbar"
-          phx-click={JS.navigate(~p"/thread/new")}
-          data-kb="MSo"
-        >
-          <.icon name="hero-plus" class="size-5 md:size-4" />
-        </.button>
-        <.button
-          variant="toolbar"
-          class="flex gap-1 items-center text-sm"
-          popovertarget="model-selector"
-          id="model-selector-trigger"
-        >
-          <div>
-            {@active_model.name}
-          </div>
-          <div>
-            <.icon name="hero-chevron-down" class="size-4" />
-          </div>
-        </.button>
-      </.toolbar>
-
-      <.alert title="Confirm Delete" id="delete-alert">
-        Are you sure you want to delete <strong>Why is the sky blue?</strong>. This
-        action is permanent.
-        <:action>
-          <.button variant="danger">
-            Delete
-          </.button>
-        </:action>
-      </.alert>
-
       <.model_selector {assigns} />
 
-      <div class="flex-1 overflow-y-auto" id="scroll-container">
-        <div class="mx-auto max-w-2xl p-2 sm:p-4">
-          <.content {assigns} />
-        </div>
-      </div>
+      <.content {assigns} />
 
       <div class="p-2 md:p-4 flex justify-center">
         <.form
@@ -104,33 +56,70 @@ defmodule ChatWeb.ThreadLive do
         </.form>
       </div>
     </div>
+    <.toolbar aria-label="Toolbar">
+      <.button
+        aria-label="Search chat history"
+        class="block"
+        variant="toolbar"
+        phx-click={JS.dispatch(":open", to: "#thread-history-dialog")}
+        data-kb="Mk"
+      >
+        <.icon name="hero-chat-bubble-bottom-center-text" class="size-5 md:size-4" />
+      </.button>
+      <.button
+        aria-label="Start a new conversation thread"
+        class="block"
+        variant="toolbar"
+        phx-click={JS.navigate(~p"/thread/new")}
+        data-kb="MSo"
+      >
+        <.icon name="hero-plus" class="size-5 md:size-4" />
+      </.button>
+      <.button
+        variant="toolbar"
+        class="flex gap-1 items-center text-sm"
+        popovertarget="model-selector"
+        id="model-selector-trigger"
+      >
+        <div>
+          {@active_model.name}
+        </div>
+        <div>
+          <.icon name="hero-chevron-down" class="size-4" />
+        </div>
+      </.button>
+    </.toolbar>
     <.history_dialog {assigns} />
     """
   end
 
   defp content(%{thread: nil} = assigns) do
     ~H"""
-    <div class="bg-bismuth-900 border border-solid border-bismuth-700 rounded-lg w-full md:max-w-md mt-12 md:mt-24 flex flex-col gap-4 p-2 md:p-4">
-      <div class="transition-all starting:opacity-0 opacity-100 duration-250">
-        <.title class="text-lg md:text-xl">How can I help you today?</.title>
-      </div>
-      <div>
-        <ul>
-          <li
-            :for={{{key, prompt}, i} <- Enum.with_index(@suggestions, 1)}
-            class="block transition-all starting:opacity-0 opacity-100 duration-300"
-            style={"transition-delay: #{i * 150}ms"}
-          >
-            <button
-              type="button"
-              class="cursor-pointer text-sm block w-full rounded-md text-start p-3 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-solid border-transparent hover:border-bismuth-700 transition-all"
-              phx-click="suggest"
-              phx-value-suggestion={key}
-            >
-              {prompt}
-            </button>
-          </li>
-        </ul>
+    <div class="flex-1 overflow-y-auto">
+      <div class="mx-auto max-w-2xl p-2 sm:p-4">
+        <div class="bg-bismuth-900 border border-solid border-bismuth-700 rounded-lg w-full md:max-w-md mt-12 md:mt-24 flex flex-col gap-4 p-2 md:p-4">
+          <div class="transition-all starting:opacity-0 opacity-100 duration-250">
+            <.title class="text-lg md:text-xl">How can I help you today?</.title>
+          </div>
+          <div>
+            <ul>
+              <li
+                :for={{{key, prompt}, i} <- Enum.with_index(@suggestions, 1)}
+                class="block transition-all starting:opacity-0 opacity-100 duration-300"
+                style={"transition-delay: #{i * 150}ms"}
+              >
+                <button
+                  type="button"
+                  class="cursor-pointer text-sm block w-full rounded-md text-start p-3 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-solid border-transparent hover:border-bismuth-700 transition-all"
+                  phx-click="suggest"
+                  phx-value-suggestion={key}
+                >
+                  {prompt}
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -138,12 +127,22 @@ defmodule ChatWeb.ThreadLive do
 
   defp content(assigns) do
     ~H"""
-    <main class="flex flex-col gap-8" phx-update="stream" id="thread-container" phx-hook="Thread">
-      <div :for={{id, message} <- @streams.messages} id={id}>
-        <hr :if={message.role == :user} class="mx-16 mb-8 text-bismuth-700" />
-        <.chat_bubble message={message} id={id} />
+    <div
+      class="flex-1 overflow-y-auto"
+      id="scroll-container"
+      phx-hook="Thread"
+      data-message-count={@message_count}
+    >
+      <div class="mx-auto max-w-2xl p-2 sm:p-4">
+        <main class="flex flex-col gap-8" phx-update="stream" id="message-container">
+          <div :for={{id, message} <- @streams.messages} id={id}>
+            <hr :if={message.role == :user} class="mx-16 mb-8 text-bismuth-700" />
+            <.chat_bubble message={message} id={id} />
+          </div>
+        </main>
+        <div id="scroll-bottom" class="w-full"></div>
       </div>
-    </main>
+    </div>
     """
   end
 
@@ -152,11 +151,11 @@ defmodule ChatWeb.ThreadLive do
     <div class="ps-10 flex flex-col items-end">
       <div class="bg-bismuth-600/50 rounded-lg px-3 py-2 border border-bismuth-700">
         <div
-          class="markdown"
+          class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
           phx-hook="Markdown"
           data-role="user"
           data-content-id={@message.content_id}
-          id={"#{@id}-user-content"}
+          id={@id}
           phx-update="ignore"
           phx-no-format
         >{@message.content}
@@ -182,14 +181,14 @@ defmodule ChatWeb.ThreadLive do
     <div class="flex flex-col items-start pe-10">
       <div class="px-3 py-2">
         <div
-          class="markdown"
+          class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
           phx-hook="Markdown"
           data-role="assistant"
           data-content-id={@message.content_id}
           data-message-id={@message.public_id}
           data-status={@message.status}
           phx-update="ignore"
-          id={"#{@id}-assistant-content"}
+          id={@id}
           phx-no-format
         >{@message.content}</div>
       </div>
@@ -266,6 +265,7 @@ defmodule ChatWeb.ThreadLive do
         phx-hook="List"
         data-search="#thread-history-search"
         data-delegate="#thread-history-dialog"
+        phx-update="stream"
       >
         <li
           :for={{id, thread} <- @streams.threads}
@@ -390,6 +390,7 @@ defmodule ChatWeb.ThreadLive do
     {:ok,
      socket
      |> assign_form(changeset(%{}))
+     |> assign(message_count: 0)
      |> stream_configure(:models, dom_id: & &1.public_id)
      |> stream(:models, models)
      |> stream_configure(:threads, dom_id: & &1.public_id)
@@ -428,13 +429,16 @@ defmodule ChatWeb.ThreadLive do
               end)
           }
 
-          push_event(socket, "update-completion:#{assistant_message.public_id}", event_data)
+          # FIXME: prevent the doulbe event submission
+          socket
+          |> push_event("update-completion:#{assistant_message.public_id}", event_data)
       end
 
     {:noreply,
      socket
      |> assign(
        thread: thread,
+       message_count: length(messages),
        current_scope: scope,
        active_model: active_model
      )
@@ -465,7 +469,10 @@ defmodule ChatWeb.ThreadLive do
         %{assigns: %{thread: %Thread{} = thread}} = socket
       )
       when thread.id == message.thread_id do
-    {:noreply, stream_insert(socket, :messages, message)}
+    {:noreply,
+     socket
+     |> stream_insert(:messages, message)
+     |> push_event("created-message", %{"message_id" => message.public_id, "role" => message.role})}
   end
 
   def handle_info(

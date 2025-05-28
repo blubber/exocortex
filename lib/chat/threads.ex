@@ -53,8 +53,10 @@ defmodule Chat.Threads do
   def create_thread(%Scope{} = scope, %Model{} = model, attrs) do
     with {:ok, thread = %Thread{}} <-
            %Thread{}
-           |> Thread.changeset(attrs, scope, model)
+           |> Thread.changeset(attrs)
            |> Chat.PublicId.public_id(:public_id, "t")
+           |> Ecto.Changeset.put_change(:model_id, model.id)
+           |> Ecto.Changeset.put_change(:user_id, scope.user.id)
            |> Repo.insert() do
       broadcast(scope, {:created, thread})
       {:ok, thread}
@@ -66,7 +68,20 @@ defmodule Chat.Threads do
 
     with {:ok, thread = %Thread{}} <-
            thread
-           |> Thread.changeset(attrs, scope, model)
+           |> Thread.changeset(attrs)
+           |> Ecto.Changeset.put_change(:model_id, model.id)
+           |> Repo.update() do
+      broadcast(scope, {:updated, thread})
+      {:ok, thread}
+    end
+  end
+
+  def update_thread(%Scope{} = scope, %Thread{} = thread, attrs) do
+    true = thread.user_id == scope.user.id
+
+    with {:ok, thread = %Thread{}} <-
+           thread
+           |> Thread.changeset(attrs)
            |> Repo.update() do
       broadcast(scope, {:updated, thread})
       {:ok, thread}
@@ -83,10 +98,10 @@ defmodule Chat.Threads do
     end
   end
 
-  def change_thread(%Scope{} = scope, %Model{} = model, %Thread{} = thread, attrs \\ %{}) do
+  def change_thread(%Scope{} = scope, %Thread{} = thread, attrs \\ %{}) do
     true = thread.user_id == scope.user.id
 
-    Thread.changeset(thread, attrs, scope, model)
+    Thread.changeset(thread, attrs)
   end
 
   def query_messages(%Scope{thread: %Thread{} = thread}) do

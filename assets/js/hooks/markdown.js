@@ -42,32 +42,22 @@ export default {
     requestAnimationFrame(() => {
       container.innerHTML = content;
       morphdom(this.container, container);
+      this.el.classList.remove("hidden");
+      this.hidden = false;
+
+      queueMicrotask(() => {
+        const event = new CustomEvent(":message-loaded", {
+          detail: {},
+          bubbles: true,
+        });
+        this.el.dispatchEvent(event);
+      });
     });
   },
 
   mounted() {
     this.container = document.createElement("div");
-
-    const id = this.el.getAttribute("id");
-    let buffer = "";
-
-    this.handleEvent("update-completion", (data) => {
-      const key = `${data.prompt}-reply`;
-
-      if (key !== id) {
-        return;
-      }
-
-      if (data.chunk === "") {
-        return;
-      }
-
-      buffer += data.chunk;
-
-      requestAnimationFrame(() => {
-        this.render(buffer);
-      });
-    });
+    this.hidden = true;
 
     if (
       this.el.dataset.role === "assistant" &&

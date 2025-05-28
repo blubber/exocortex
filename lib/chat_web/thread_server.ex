@@ -9,15 +9,25 @@ defmodule ChatWeb.ThreadServer.Request do
   ]
 end
 
+defmodule ChatWeb.ThreadServer.TitleRequest do
+  defstruct [
+    :scope,
+    :chunks
+  ]
+end
+
 defmodule ChatWeb.ThreadServer do
   use(HTTPoison.Base)
   use GenServer
 
+  import Ecto.Query
+
   alias Chat.Completion
-  alias ChatWeb.ThreadServer.Request
+  alias ChatWeb.ThreadServer.{Request, TitleRequest}
   alias Chat.Accounts.{Scope, User}
   alias Chat.Threads
-  alias Chat.Threads.Thread
+  alias Chat.Threads.{Thread, Message}
+  alias Chat.Repo
 
   def chat_completion(
         %Scope{thread: %Thread{}, user: %User{} = user} = scope,
@@ -35,6 +45,10 @@ defmodule ChatWeb.ThreadServer do
     GenServer.call(via_tuple(user), {:prepare_thread, scope})
   end
 
+  def generate_title(%Scope{thread: %Thread{}, user: %User{} = user} = scope) do
+    GenServer.cast(via_tuple(user), {:generate_title, scope})
+  end
+
   def start_link(user) do
     GenServer.start_link(__MODULE__, user, name: via_tuple(user))
   end
@@ -50,6 +64,10 @@ defmodule ChatWeb.ThreadServer do
   def handle_call({:prepare_thread, scope}, _from, state) do
     if find(scope, state) == nil do
       Threads.reset_thread(scope, scope.thread)
+    end
+
+    if scope.thread.title == "" do
+      __MODULE__.generate_title(scope)
     end
 
     {:reply, :ok, state}
@@ -118,6 +136,53 @@ defmodule ChatWeb.ThreadServer do
     end
   end
 
+  def handle_cast({:generate_title, scope}, state) do
+    model = Chat.Inference.select_model(:title)
+
+    {url, headers} = Completion.prepare_request(model)
+
+    query =
+      from message in Message,
+        where: message.thread_id == ^scope.thread.id and message.role == :user,
+        order_by: [asc: message.inserted_at],
+        limit: 1
+
+    template = """
+      Between the <content> tags is a piece of content, generate a title for
+      that content keeping the following rules in mind:
+
+      ### Rules
+      1. You are prohibited from generating a title shorter than 2 words.
+      2. You are prohibited from generating a title longer than 6 words.
+      3. Start the title with an emoji if a suitable one can be found.
+      4. Respond with the same langauge as the content.
+      5. Ouput only the title.
+
+      <content><%= message.content %></content>
+    """
+
+    with %Message{} = message <- Repo.one(query),
+         content <- EEx.eval_string(template, message: message),
+         body <- %{
+           model: model.identifier,
+           stream: true,
+           messages: [%{role: "user", content: content}]
+         },
+         {:ok, body_data} <- Jason.encode(body),
+         {:ok, %HTTPoison.AsyncResponse{id: id}} <-
+           post(url, body_data, headers,
+             stream_to: self(),
+             timeout: 15_000,
+             recv_timeout: 300_000
+           ) do
+      request = %TitleRequest{scope: scope, chunks: []}
+      {:noreply, Map.put(state, id, request)}
+    else
+      _ ->
+        {:noreply, state}
+    end
+  end
+
   def handle_info(%HTTPoison.AsyncStatus{id: id}, state)
       when not is_map_key(state, id) do
     :hackney.stop_async(id)
@@ -128,12 +193,13 @@ defmodule ChatWeb.ThreadServer do
     if code >= 300 do
       :hackney.stop_async(id)
 
-      request = state[id]
-
-      Threads.update_message(request.scope, request.assistant_message, %{
-        status: :failed,
-        reason: "non-200 http status code: #{code}"
-      })
+      case state[id] do
+        %Request{} = request ->
+          Threads.update_message(request.scope, request.assistant_message, %{
+            status: :failed,
+            reason: "non-200 http status code: #{code}"
+          })
+      end
 
       {:noreply, Map.delete(state, id)}
     else
@@ -156,22 +222,30 @@ defmodule ChatWeb.ThreadServer do
   end
 
   def handle_info(%HTTPoison.AsyncChunk{id: id, chunk: chunk}, state) do
-    request = state[id]
-
     chunks = Completion.parse_chunk(chunk)
 
-    chunks
-    |> Enum.with_index(length(request.chunks))
-    |> Enum.each(
-      &Threads.broadcast(
-        request.scope,
-        {:update_completion, request.assistant_message, &1}
-      )
-    )
+    case state[id] do
+      %Request{} = request ->
+        chunks
+        |> Enum.with_index(length(request.chunks))
+        |> Enum.each(
+          &Threads.broadcast(
+            request.scope,
+            {:update_completion, request.assistant_message, &1}
+          )
+        )
+
+      _ ->
+        nil
+    end
 
     {:noreply,
-     Map.update(state, id, nil, fn request ->
-       %Request{request | chunks: Enum.reverse(chunks) ++ request.chunks}
+     Map.update(state, id, nil, fn
+       %Request{} = request ->
+         %Request{request | chunks: Enum.reverse(chunks) ++ request.chunks}
+
+       %TitleRequest{} = request ->
+         %TitleRequest{request | chunks: Enum.reverse(chunks) ++ request.chunks}
      end)}
   end
 
@@ -181,13 +255,47 @@ defmodule ChatWeb.ThreadServer do
   end
 
   def handle_info(%HTTPoison.AsyncEnd{id: id}, state) do
+    handle_stream_end(state[id])
+    {:noreply, Map.delete(state, id)}
+  end
+
+  def handle_info(%HTTPoison.Error{id: id}, state)
+      when not is_map_key(state, id) do
+    :hackney.stop_async(id)
+    {:noreply, state}
+  end
+
+  def handle_info(%HTTPoison.Error{id: id} = error, state) do
+    case state[id] do
+      %Request{} = request ->
+        Threads.update_message(request.scope, request.assistant_message, %{
+          status: :failed,
+          reason: Exception.message(error)
+        })
+    end
+
+    :hackney.stop_async(id)
+    {:noreply, Map.delete(state, id)}
+  end
+
+  defp handle_stream_end(%TitleRequest{scope: scope, chunks: chunks}) do
+    content =
+      chunks
+      |> Enum.map(& &1.content)
+      |> Enum.reverse()
+      |> Enum.join()
+      |> String.trim()
+
+    Threads.update_thread(scope, scope.thread, %{title: content})
+  end
+
+  defp handle_stream_end(%Request{} = request) do
     %{
       user_message: user_message,
       assistant_message: assistant_message,
       chunks: chunks,
       scope: scope
-    } =
-      state[id]
+    } = request
 
     content =
       chunks
@@ -214,31 +322,15 @@ defmodule ChatWeb.ThreadServer do
       status: :done,
       token_count: output_tokens
     })
-
-    {:noreply, Map.delete(state, id)}
-  end
-
-  def handle_info(%HTTPoison.Error{id: id}, state)
-      when not is_map_key(state, id) do
-    :hackney.stop_async(id)
-    {:noreply, state}
-  end
-
-  def handle_info(%HTTPoison.Error{id: id} = error, state) do
-    request = state[id]
-
-    Threads.update_message(request.scope, request.assistant_message, %{
-      status: :failed,
-      reason: Exception.message(error)
-    })
-
-    :hackney.stop_async(id)
-    {:noreply, Map.delete(state, id)}
   end
 
   defp find(%Thread{} = thread, state) do
-    case Enum.find(state, fn {_, request} ->
-           request.user_message.thread_id == thread.id
+    case Enum.find(state, fn
+           {_, %TitleRequest{}} ->
+             false
+
+           {_, %Request{} = request} ->
+             request.user_message.thread_id == thread.id
          end) do
       nil -> nil
       {_, request} -> request

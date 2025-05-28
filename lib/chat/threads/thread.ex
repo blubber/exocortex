@@ -9,7 +9,7 @@ defmodule Chat.Threads.Thread do
     field :public_id, :string
     field :last_active_at, :utc_datetime
     field :archived_at, :utc_datetime
-    field :title, :string
+    field :title, :string, default: ""
     field :user_title, :string, default: ""
 
     timestamps(type: :utc_datetime)
@@ -19,13 +19,10 @@ defmodule Chat.Threads.Thread do
   end
 
   @doc false
-  def changeset(thread, attrs, user_scope, %Model{} = model) do
+  def changeset(thread, attrs) do
     thread
     |> cast(attrs, [:title, :user_title, :last_active_at, :archived_at])
-    |> put_change(:user_id, user_scope.user.id)
-    |> put_change(:model_id, model.id)
-    |> validate_required([:title])
-    |> validate_length(:title, min: 3, max: 50)
+    |> validate_length(:title, max: 50)
     |> validate_length(:user_title, max: 50)
   end
 end
