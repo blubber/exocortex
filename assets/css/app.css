@@ -101,6 +101,10 @@
 }
 
 @layer components {
+  .alert::backdrop {
+    backdrop-filter: grayscale(100%) brightness(75%) blur(6px);
+  }
+
   .markdown {
     line-height: calc(1.15 * var(--text-base--line-height));
 

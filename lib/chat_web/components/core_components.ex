@@ -15,39 +15,38 @@ defmodule ChatWeb.CoreComponents do
 
   def alert(assigns) do
     ~H"""
-    <div
-      popover
-      id={@id}
-      {@rest}
-      class="m-auto bg-bismuth-900 text-zinc-300 rounded-lg border border-solid border-bismuth-800 shadow-black shadow-lg p-4 max-w-lg"
-    >
-      <div class="flex flex-col gap-4">
-        <div class="flex gap-4 items-center">
-          <div class="flex-1">
-            <.title class="text-lg md:text-xl">{@title}</.title>
-          </div>
+    <div popover id={@id} {@rest} class="m-auto w-full  md:min-w-md max-w-xl p-4 bg-transparent alert">
+      <.focus_wrap id={"#{@id}-focus-wrap"}>
+        <div
+          class="bg-bismuth-800 text-zinc-300 flex flex-col gap-4 md:gap-6 p-4 rounded-lg border border-bismuth-700 shadow-lg shadow-black"
+          role="alertdialog"
+        >
+          <header class="flex gap-4 items-center">
+            <div class="flex-1">
+              <.title level={4} class="text-lg">{@title}</.title>
+            </div>
+            <div>
+              <.button
+                type="button"
+                variant="toolbar"
+                popovertarget={@id}
+                popovertargetaction="hide"
+                aria-label="Close alert"
+              >
+                <.icon name="hero-x-mark" class="size-5 md:size-4" />
+              </.button>
+            </div>
+          </header>
+
           <div>
-            <button
-              type="button"
-              class="text-bismuth-200/70 hover:text-bismuth-200 cursor-pointer p-1.5"
-              popovertarget={@id}
-              popovertargetaction="hide"
-            >
-              <.icon name="hero-x-mark" class="size-4" />
-            </button>
+            {render_slot(@inner_block)}
           </div>
-        </div>
 
-        <div>
-          {render_slot(@inner_block)}
+          <footer :if={@action != []} class="flex justify-end items-center gap-2">
+            <div :for={action <- @action}>{render_slot(action)}</div>
+          </footer>
         </div>
-
-        <div :if={@action != []} class="flex gap-2 justify-end">
-          <div :for={action <- @action}>
-            {render_slot(action)}
-          </div>
-        </div>
-      </div>
+      </.focus_wrap>
     </div>
     """
   end
@@ -122,7 +121,9 @@ defmodule ChatWeb.CoreComponents do
     """
   end
 
-  attr :rest, :global, include: ~w(href navigate patch method popovertarget disabled)
+  attr :rest, :global,
+    include: ~w(href navigate patch method popovertarget popovertargetaction disabled)
+
   attr :variant, :string, default: "primary"
   attr :class, :any, default: nil
 
@@ -131,9 +132,9 @@ defmodule ChatWeb.CoreComponents do
   def button(%{rest: rest} = assigns) do
     if rest[:href] || rest[:navigate] || rest[:patch] do
       ~H"""
-      <.link class={@class} {@rest}>
+      <Phoenix.Component.link class={[button_variant(@variant), @class]} {@rest}>
         {render_slot(@inner_block)}
-      </.link>
+      </Phoenix.Component.link>
       """
     else
       ~H"""
@@ -156,7 +157,9 @@ defmodule ChatWeb.CoreComponents do
   end
 
   defp button_variant("link") do
-    button_style(~w(text-red-300 hover:not-disabled:text-red-200 underline hover:no-underline))
+    button_style(
+      ~w(cursor-pointer text-red-400/90 hover:text-red-400 underline hover:no-underline)
+    )
   end
 
   defp button_variant("primary") do

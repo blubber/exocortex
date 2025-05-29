@@ -1,6 +1,8 @@
 defmodule ChatWeb.ThreadLive do
   use ChatWeb, :live_view
 
+  import Ecto.Query
+
   alias Ecto.Changeset
 
   alias Chat.Models
@@ -271,18 +273,79 @@ defmodule ChatWeb.ThreadLive do
           :for={{id, thread} <- @streams.threads}
           id={id}
           data-list-item={if(thread.title == "", do: "New Chat", else: thread.title)}
+          class="block my-1 rounded-lg px-3 py-2 hover:bg-bismuth-700 flex gap-2 md:gap-4 items-center"
         >
-          <.button
-            navigate={"/thread/#{thread.public_id}"}
-            variant="blank"
-            class="block w-full rounded-md text-start p-2 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-solid border-transparent hover:border-bismuth-700 transition-all my-1"
-          >
-            {if(thread.title == "", do: "New Chat", else: thread.title)}
-          </.button>
+          <div class="flex-1">
+            <.button
+              navigate={~p"/thread/#{thread.public_id}"}
+              variant="blank"
+              class="text-left flex flex-col"
+            >
+              <div>
+                {if(thread.title == "", do: "New Chat", else: thread.title)}
+              </div>
+              <div class="text-zinc-400 text-sm">
+                Last message: {thread.last_active_at}
+              </div>
+            </.button>
+          </div>
+          <div class="flex items-center">
+            <.button
+              type="button"
+              variant="toolbar"
+              aria-label="Delete thread"
+              popovertarget={"#{thread.public_id}-confirm-delete"}
+            >
+              <.icon name="hero-trash" class="size-5 md:size-4" />
+            </.button>
+          </div>
+          <.alert id={"#{thread.public_id}-confirm-delete"} title="Confirm Delete">
+            Are you sure you want to delete <strong>{if(thread.title == "", do: "New Chat", else: thread.title)}</strong>?
+            This action is permanent and cannot be undone.
+            <:action>
+              <.button
+                type="button"
+                variant="link"
+                autofocus
+                popovertarget={"#{thread.public_id}-confirm-delete"}
+                popovertargetaction="hide"
+              >
+                Cancel
+              </.button>
+            </:action>
+            <:action>
+              <.button
+                type="button"
+                variant="primary"
+                phx-click="delete-thread"
+                phx-value-id={thread.public_id}
+              >
+                Permanently Delete
+              </.button>
+            </:action>
+          </.alert>
         </li>
       </ul>
     </.dialog>
     """
+  end
+
+  def handle_event("delete-thread", %{"id" => id}, socket) do
+    %{current_scope: scope, thread: current_thread} = socket.assigns
+
+    {count, _} =
+      Repo.delete_all(
+        from thread in Thread,
+          where: thread.public_id == ^id and thread.user_id == ^scope.user.id
+      )
+
+    {:noreply,
+     if current_thread != nil && current_thread.public_id == id && count == 1 do
+       push_navigate(socket, to: ~p"/thread/new")
+     else
+       socket
+     end
+     |> stream_delete_by_dom_id(:threads, id)}
   end
 
   def handle_event("validate", %{"prompt" => params}, socket) do
@@ -313,7 +376,7 @@ defmodule ChatWeb.ThreadLive do
 
     model = Chat.Inference.select_model(:completion, scope)
 
-    {:ok, thread} = Threads.create_thread(scope, model, %{title: "New Chat"})
+    {:ok, thread} = Threads.create_thread(scope, model, %{title: ""})
     scope = Map.put(scope, :thread, thread)
 
     user_message =
@@ -356,7 +419,7 @@ defmodule ChatWeb.ThreadLive do
 
     model = Chat.Inference.select_model(:completion, scope)
 
-    {:ok, thread} = Threads.create_thread(scope, model, %{title: "New Chat"})
+    {:ok, thread} = Threads.create_thread(scope, model, %{title: ""})
 
     socket
     |> assign(thread: thread, current_scope: Map.put(scope, :thread, thread))

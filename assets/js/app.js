@@ -47,24 +47,24 @@ if (process.env.NODE_ENV === "development") {
       //
       //   * click with "c" key pressed to open at caller location
       //   * click with "d" key pressed to open at function component definition location
-      let keyDown;
-      window.addEventListener("keydown", (e) => (keyDown = e.key));
-      window.addEventListener("keyup", (e) => (keyDown = null));
-      window.addEventListener(
-        "click",
-        (e) => {
-          if (keyDown === "c") {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            reloader.openEditorAtCaller(e.target);
-          } else if (keyDown === "d") {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            reloader.openEditorAtDef(e.target);
-          }
-        },
-        true,
-      );
+      // let keyDown;
+      // window.addEventListener("keydown", (e) => (keyDown = e.key));
+      // window.addEventListener("keyup", (e) => (keyDown = null));
+      // window.addEventListener(
+      //   "click",
+      //   (e) => {
+      //     if (keyDown === "c") {
+      //       e.preventDefault();
+      //       e.stopImmediatePropagation();
+      //       reloader.openEditorAtCaller(e.target);
+      //     } else if (keyDown === "d") {
+      //       e.preventDefault();
+      //       e.stopImmediatePropagation();
+      //       reloader.openEditorAtDef(e.target);
+      //     }
+      //   },
+      //   true,
+      // );
 
       window.liveReloader = reloader;
     },

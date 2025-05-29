@@ -126,16 +126,16 @@ export default {
         signal: this.abortController.signal,
       },
     );
-    this.el.addEventListener(
-      "click",
-      () => {
-        const popover = event.target.closest("[popover]");
-        if (popover !== null) {
-          popover.hidePopover();
-        }
-      },
-      { signal: this.abortController.signal },
-    );
+    // this.el.addEventListener(
+    //   "click",
+    //   () => {
+    //     const popover = event.target.closest("[popover]");
+    //     if (popover !== null) {
+    //       popover.hidePopover();
+    //     }
+    //   },
+    //   { signal: this.abortController.signal },
+    // );
   },
 
   destroyed() {

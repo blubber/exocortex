@@ -285,8 +285,10 @@ defmodule ChatWeb.ThreadServer do
       |> Enum.reverse()
       |> Enum.join()
       |> String.trim()
+      |> IO.inspect()
 
     Threads.update_thread(scope, scope.thread, %{title: content})
+    |> IO.inspect()
   end
 
   defp handle_stream_end(%Request{} = request) do
