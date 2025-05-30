@@ -66,7 +66,6 @@ export default {
   mounted() {
     this.abortController = new AbortController();
 
-    this.delegate = document.querySelector(this.el.dataset.delegate);
     this.search = document.querySelector(this.el.dataset.search);
 
     this.search.addEventListener(

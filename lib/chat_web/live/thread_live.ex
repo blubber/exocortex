@@ -180,9 +180,9 @@ defmodule ChatWeb.ThreadLive do
   defp chat_bubble(%{message: %Message{role: :assistant}} = assigns) do
     ~H"""
     <div class="flex flex-col items-start pe-10">
-      <div class="px-3 py-2">
+      <div class="px-3 py-2 w-full">
         <div
-          class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
+          class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0 w-full"
           phx-hook="Message"
           data-role="assistant"
           data-content-id={@message.content_id}
@@ -199,53 +199,46 @@ defmodule ChatWeb.ThreadLive do
 
   defp model_selector(assigns) do
     ~H"""
-    <div
-      popover
-      id="model-selector"
-      phx-hook="ModelSelector"
-      class="bg-bismuth-900 border border-solid border-bismuth-700 p-2 sm:p-4 rounded-lg open:flex flex-col gap-4 text-zinc-300 overflow-none"
-    >
-      <header class="flex flex-col gap-2">
-        <div>
-          <.title class="text-sm sm:text-base">Models</.title>
-        </div>
-        <div>
-          <.input
-            type="search"
-            name="search-mdoels"
-            id="model-selector-search"
-            autocomplete="off"
-            autofocus
-            value=""
-            placeholder="Filter models"
-          />
-        </div>
-      </header>
-
-      <div>
-        <ul
-          class="block"
-          phx-hook="List"
-          id="model-selector-list"
-          data-search="#model-selector-search"
-          data-delegate="#model-selector"
-          phx-update="stream"
+    <.menu title="Models" id="model-selector" class="w-full max-w-96">
+      <:header>
+        <.input
+          type="search"
+          value=""
+          class="w-full block"
+          name="model-search"
+          id="model-search"
+          autofocus
+          autocomplete="off"
+        />
+      </:header>
+      <ul id="model-selector-list" phx-hook="List" phx-update="stream" data-search="#model-search">
+        <li
+          :for={{id, model} <- @streams.models}
+          id={id}
+          data-list-item={model.name}
+          class="my-1 flex gap-2 hover:bg-bismuth-700 rounded-md px-2 py-1"
         >
-          <li :for={{id, model} <- @streams.models} id={id} data-list-item={model.name} class="my-2">
-            <button
+          <div class="flex-1">
+            <.button
               type="button"
-              class="block w-full cursor-pointer p-2 text-left border border-solid border-transparent hover:hover-bismuth-600 hover:bg-bismuith-600"
+              variant="blank"
               phx-click="select-model"
-              phx-value-model={model.public_id}
+              phx-value-model={id}
               popovertarget="model-selector"
               popovertargetaction="hide"
+              class="text-left cursor-pointer"
             >
               {model.name}
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
+            </.button>
+          </div>
+          <div>
+            <div class="bg-red-500 rounded-full px-1 text-xs leading-6 min-w-6 text-white font-bold">
+              {model.cost}
+            </div>
+          </div>
+        </li>
+      </ul>
+    </.menu>
     """
   end
 
@@ -268,7 +261,6 @@ defmodule ChatWeb.ThreadLive do
         id="thread-history-list"
         phx-hook="List"
         data-search="#thread-history-search"
-        data-delegate="#thread-history-dialog"
         phx-update="stream"
       >
         <li

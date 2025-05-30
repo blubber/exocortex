@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import morphdom from "morphdom";
 import { marked } from "marked";
 
@@ -33,7 +34,11 @@ export default {
   },
 
   render(content) {
-    return marked.parse(content);
+    return DOMPurify.sanitize(
+      marked.parse(
+        content.replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, ""),
+      ),
+    );
   },
 
   setContent(content) {

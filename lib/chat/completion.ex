@@ -28,7 +28,8 @@ defmodule Chat.Completion do
             role:
               case &1.role do
                 :system -> "system"
-                _ -> "user"
+                :assistant -> "assistant"
+                :user -> "user"
               end,
             content: &1.content
           }

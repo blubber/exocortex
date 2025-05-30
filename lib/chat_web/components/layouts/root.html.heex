@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="w-full h-full bg-bismuth-800 text-zinc-300">
+<html lang="en" class="w-full h-full bg-bismuth-800 text-zinc-300 scheme-light-dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,16 +7,6 @@
     <.live_title default="Chat" suffix=" · Phoenix Framework">
       {assigns[:page_title]}
     </.live_title>
-    <script type="module">
-      if (!("anchorName" in document.documentElement.style)) {
-        let r = import("https://unpkg.com/@oddbird/css-anchor-positioning");
-      r.then((rr) => {
-        console.log("Done");
-        console.log(rr)
-      })
-
-      }
-    </script>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -76,35 +76,15 @@
       opacity: 0;
     }
   }
-
-  #model-selector-trigger {
-    anchor-name: --model-selector-trigger;
-  }
-
-  #model-selector {
-    position: absolute;
-    position-anchor: --model-selector-trigger;
-    position-area: bottom span-right;
-    width: 20rem;
-    top: anchor-bottom;
-    left: anchor-left;
-
-    &::backdrop {
-      backdrop-filter: grayscale(100%) brightness(95%);
-    }
-  }
-
-  @media (max-width: 40rem) {
-    #model-selector {
-      width: 100%;
-      margin-left: calc(-16 * var(--spacing));
-    }
-  }
 }
 
 @layer components {
   .alert::backdrop {
     backdrop-filter: grayscale(100%) brightness(75%) blur(6px);
+  }
+
+  .menu::backdrop {
+    backdrop-filter: grayscale(100%) brightness(76%);
   }
 
   .markdown {
@@ -115,6 +95,10 @@
     blockquote:not(:last-child):not(:first-child) {
       margin-top: calc(8 * var(--spacing));
       margin-bottom: calc(8 * var(--spacing));
+    }
+
+    pre {
+      overflow-x: auto;
     }
 
     blockquote {

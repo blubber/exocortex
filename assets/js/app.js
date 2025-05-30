@@ -7,11 +7,11 @@ import topbar from "../vendor/topbar";
 import Dialog from "./hooks/dialog.js";
 import List from "./hooks/list.js";
 import Message from "./hooks/message.js";
-import ModelSelector from "./hooks/model_selector.js";
+import Menu from "./hooks/menu.js";
 import Prompt from "./hooks/prompt.js";
 import Thread from "./hooks/thread.js";
 
-const Hooks = { Dialog, List, Prompt, Thread, Message, ModelSelector };
+const Hooks = { Dialog, List, Prompt, Thread, Message, Menu };
 
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")

@@ -8,6 +8,46 @@ defmodule ChatWeb.CoreComponents do
 
   attr :id, :string, required: true
   attr :title, :string, required: true
+  attr :class, :any, default: nil
+
+  slot :inner_block
+  slot :header, required: false
+
+  def menu(assigns) do
+    ~H"""
+    <focus_wrap
+      id={@id}
+      phx-hook="Menu"
+      popover
+      class={["p-2 md:p-4 pt-0 bg-transparent menu", @class]}
+    >
+      <div class="p-2 flex flex-col gap-4 bg-bismuth-800 text-zinc-300 border border-bismuth-700 rounded-lg shadow-lg shadow-black">
+        <header class="flex flex-col gap-1">
+          <div class="flex gap-4 items-center">
+            <div class="flex-1">
+              <.title level={4}>{@title}</.title>
+            </div>
+            <div>
+              <.button type="button" variant="toolbar" popovertarget={@id} popovertargetaction="hide">
+                <.icon name="hero-x-mark" class="size-6 md:size-5" />
+              </.button>
+            </div>
+          </div>
+          <div :if={@header != []}>
+            {render_slot(@header)}
+          </div>
+        </header>
+
+        <div>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </focus_wrap>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :title, :string, required: true
   attr :rest, :global
 
   slot :inner_block, required: true

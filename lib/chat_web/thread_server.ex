@@ -102,7 +102,10 @@ defmodule ChatWeb.ThreadServer do
       |> Threads.list_messages()
 
     {url, headers} = Completion.prepare_request(model)
-    body = Completion.prepare_body(model, messages)
+
+    body =
+      Completion.prepare_body(model, messages)
+      |> IO.inspect()
 
     with {:ok, body_data} <- Jason.encode(body),
          {:ok, %HTTPoison.AsyncResponse{id: id}} <-
@@ -285,10 +288,8 @@ defmodule ChatWeb.ThreadServer do
       |> Enum.reverse()
       |> Enum.join()
       |> String.trim()
-      |> IO.inspect()
 
     Threads.update_thread(scope, scope.thread, %{title: content})
-    |> IO.inspect()
   end
 
   defp handle_stream_end(%Request{} = request) do
