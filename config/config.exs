@@ -70,6 +70,9 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :chat,
+  message_cache_key: "#{Enum.random(1..1_000_000)}"
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

@@ -50,7 +50,7 @@ defmodule Chat.Models do
   def create_model(attrs, %ModelProvider{} = model_provider) do
     %Model{}
     |> Model.changeset(attrs, model_provider)
-    |> Chat.PublicId.public_id(:public_id, "m")
+    |> Chat.PublicId.public_id(:public_id, "l")
     |> Repo.insert()
   end
 

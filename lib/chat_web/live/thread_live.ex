@@ -56,7 +56,7 @@ defmodule ChatWeb.ThreadLive do
         </.form>
       </div>
     </div>
-    <.toolbar aria-label="Toolbar">
+    <.toolbar aria-label="Toolbar" class="max-w-[90dvw]">
       <.button
         aria-label="Search chat history"
         class="block"
@@ -77,11 +77,11 @@ defmodule ChatWeb.ThreadLive do
       </.button>
       <.button
         variant="toolbar"
-        class="flex gap-1 items-center text-sm"
+        class="flex gap-1 items-center text-sm min-w-0"
         popovertarget="model-selector"
         id="model-selector-trigger"
       >
-        <div>
+        <div class="overflow-hidden text-ellipsis whitespace-nowrap min-w-0 grow-1 shrink-1 basis-0">
           {@active_model.name}
         </div>
         <div>
@@ -138,7 +138,11 @@ defmodule ChatWeb.ThreadLive do
         <main class="flex flex-col gap-8" phx-update="stream" id="message-container">
           <div :for={{id, message} <- @streams.messages} id={id}>
             <hr :if={message.role == :user} class="mx-16 mb-8 text-bismuth-700" />
-            <.chat_bubble message={message} id={id} />
+            <.chat_bubble
+              message={message}
+              id={"#{id}-container"}
+              message_cache_key={@message_cache_key}
+            />
           </div>
         </main>
         <div id="scroll-bottom" class="w-full"></div>
@@ -156,6 +160,7 @@ defmodule ChatWeb.ThreadLive do
           phx-hook="Message"
           data-role="user"
           data-content-id={@message.content_id}
+          data-message-cache-key={@message_cache_key}
           id={@id}
           phx-update="ignore"
           phx-no-format
@@ -186,6 +191,7 @@ defmodule ChatWeb.ThreadLive do
           phx-hook="Message"
           data-role="assistant"
           data-content-id={@message.content_id}
+          data-message-cache-key={@message_cache_key}
           data-message-id={@message.public_id}
           data-status={@message.status}
           phx-update="ignore"
@@ -426,8 +432,18 @@ defmodule ChatWeb.ThreadLive do
 
     model = Chat.Inference.select_model(:completion, scope)
 
+    content_id =
+      prompt
+      |> then(&:crypto.hash(:sha256, &1))
+      |> Base.encode16(case: :lower)
+
     {:ok, user_message} =
-      Threads.create_message(scope, model, %{role: :user, content: prompt, status: :done})
+      Threads.create_message(scope, model, %{
+        role: :user,
+        content: prompt,
+        status: :done,
+        content_id: content_id
+      })
 
     ChatWeb.ThreadServer.chat_completion(scope, user_message, model)
 
@@ -444,10 +460,12 @@ defmodule ChatWeb.ThreadLive do
     models = Models.list_models(scope)
     threads = Threads.list_threads(scope)
 
+    message_cache_key = Application.fetch_env!(:chat, :message_cache_key)
+
     {:ok,
      socket
      |> assign_form(changeset(%{}))
-     |> assign(message_count: 0)
+     |> assign(message_count: 0, message_cache_key: message_cache_key)
      |> stream_configure(:models, dom_id: & &1.public_id)
      |> stream(:models, models)
      |> stream_configure(:threads, dom_id: & &1.public_id)

@@ -5,7 +5,7 @@ defmodule Chat.PublicId do
     |> then(&"#{prefix}#{&1}")
   end
 
-  def public_id(%Ecto.Changeset{} = changeset, field, prefix, num_bytes \\ 87) do
+  def public_id(%Ecto.Changeset{} = changeset, field, prefix, num_bytes \\ 8) do
     changeset
     |> Ecto.Changeset.put_change(field, generate(prefix, num_bytes))
   end

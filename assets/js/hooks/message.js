@@ -14,23 +14,63 @@ const isVisibleInViewport = (element) => {
 };
 
 export default {
-  renderCached(content, content_id) {
-    if (!content_id) {
+  purge() {
+    const threshold = new Date().getTime() - 86_400_00;
+
+    Object.keys(localStorage).forEach((key) => {
+      const value = localStorage.getItem(key);
+      let data;
+
+      try {
+        data = JSON.parse(value);
+      } catch {
+        localStorage.removeItem(key);
+      }
+
+      if (!data.timestamp || data.timestamp < threshold) {
+        localStorage.removeItem(key);
+      }
+    });
+  },
+
+  renderCached(content, contentId) {
+    if (!contentId) {
       return this.render(content);
     }
 
-    const key = `message_${content_id}`;
+    const key = `message:${this.cacheKey}:${contentId}`;
+    const cachedValue = localStorage.getItem(key);
 
-    let cachedContent = localStorage.getItem(key);
-    if (cachedContent === null) {
-      cachedContent = { timestamp: new Date(), content: this.render(content) };
-    } else {
-      cachedContent = JSON.parse(cachedContent);
+    const renderAndSet = (key, content) => {
+      const rendered = this.render(content);
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          content: rendered,
+          timestamp: new Date().getTime(),
+        }),
+      );
+
+      return rendered;
+    };
+
+    if (cachedValue === null) {
+      return renderAndSet(key, content);
     }
 
-    localStorage.setItem(key, JSON.stringify(cachedContent));
+    let cachedData = null;
+    try {
+      cachedData = JSON.parse(cachedValue);
+    } catch (e) {
+      return renderAndSet(key, content);
+    }
 
-    return cachedContent.content;
+    const now = new Date().getTime();
+    if (now - cachedData.timestamp > 86_400_000) {
+      return renderAndSet(key, content);
+    }
+
+    return cachedData.content;
   },
 
   render(content) {
@@ -63,6 +103,7 @@ export default {
   mounted() {
     this.container = document.createElement("div");
     this.hidden = true;
+    this.cacheKey = this.el.dataset.messageCacheKey || "";
 
     if (
       this.el.dataset.role === "assistant" &&
@@ -76,8 +117,6 @@ export default {
         data.chunks.forEach((chunk) => {
           if (chunk.index <= lastIndex) {
             return;
-          } else if (chunk.index > lastIndex + 1) {
-            console.log("Desync", lastIndex, chunk.index);
           }
 
           lastIndex = chunk.index;
@@ -115,5 +154,9 @@ export default {
     } else {
       queueMicrotask(setInitialContent.bind(this));
     }
+
+    queueMicrotask(() => {
+      this.purge();
+    });
   },
 };
