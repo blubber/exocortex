@@ -31,10 +31,7 @@ defmodule Chat.Threads do
   end
 
   def get_thread!(%Scope{} = scope, id) when is_binary(id) do
-    Repo.one!(
-      from thread in Thread,
-        where: thread.public_id == ^id and thread.user_id == ^scope.user.id
-    )
+    Repo.get_by!(Thread, public_id: id, user_id: scope.user.id)
   end
 
   def reset_thread(%Scope{} = scope, %Thread{} = thread) do

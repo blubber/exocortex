@@ -19,8 +19,6 @@ defmodule ChatWeb.ThreadLive do
     flex-col
       h-full
       ">
-      <.model_selector {assigns} />
-
       <.content {assigns} />
 
       <div class="p-2 md:p-4 flex justify-center">
@@ -91,6 +89,7 @@ defmodule ChatWeb.ThreadLive do
         </div>
       </.button>
     </.toolbar>
+    <.model_selector {assigns} />
     <.history_dialog {assigns} />
     """
   end
@@ -154,7 +153,7 @@ defmodule ChatWeb.ThreadLive do
       <div class="bg-bismuth-600/50 rounded-lg px-3 py-2 border border-bismuth-700">
         <div
           class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
-          phx-hook="Markdown"
+          phx-hook="Message"
           data-role="user"
           data-content-id={@message.content_id}
           id={@id}
@@ -184,7 +183,7 @@ defmodule ChatWeb.ThreadLive do
       <div class="px-3 py-2">
         <div
           class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
-          phx-hook="Markdown"
+          phx-hook="Message"
           data-role="assistant"
           data-content-id={@message.content_id}
           data-message-id={@message.public_id}
@@ -203,6 +202,7 @@ defmodule ChatWeb.ThreadLive do
     <div
       popover
       id="model-selector"
+      phx-hook="ModelSelector"
       class="bg-bismuth-900 border border-solid border-bismuth-700 p-2 sm:p-4 rounded-lg open:flex flex-col gap-4 text-zinc-300 overflow-none"
     >
       <header class="flex flex-col gap-2">
@@ -237,6 +237,8 @@ defmodule ChatWeb.ThreadLive do
               class="block w-full cursor-pointer p-2 text-left border border-solid border-transparent hover:hover-bismuth-600 hover:bg-bismuith-600"
               phx-click="select-model"
               phx-value-model={model.public_id}
+              popovertarget="model-selector"
+              popovertargetaction="hide"
             >
               {model.name}
             </button>
