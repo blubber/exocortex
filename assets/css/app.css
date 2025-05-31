@@ -32,9 +32,51 @@
 @utility bg-toolbar {
   background-color: var(--color-bismuth-900);
 }
+@utility bg-input {
+  background-color: var(--color-bismuth-700);
+}
+@utility bg-divider {
+  background-color: var(--color-bismuth-400);
+}
+@utility bg-chat-bubble {
+  background-color: color-mix(
+    in oklch,
+    var(--color-bismuth-600) 59%,
+    transparent
+  );
+}
 
 @utility text-default {
   color: var(--color-zinc-300);
+}
+@utility text-muted {
+  color: var(--color-bismuth-400);
+
+  @media (prefers-contrast: more) {
+    color: color-mix(
+      in oklch,
+      var(--color-bismuth-400) 50%,
+      var(--color-bismuth-300)
+    );
+  }
+}
+@utility text-toolbar-button {
+  color: color-mix(in oklch, var(--color-bismuth-300) 80%, transparent);
+
+  &:hover {
+    color: var(--color-bismuth-300);
+  }
+
+  @media (prefers-contrast: more) {
+    color: color-mix(in oklch, var(--color-bismuth-200) 80%, transparent);
+
+    &:hover {
+      color: var(--color-bismuth-200);
+    }
+  }
+}
+@utility text-close-button {
+  color: var(--color-bismuth-300);
 }
 
 @utility border-default {
@@ -42,6 +84,24 @@
 
   @media (prefers-contrast: more) {
     border-color: var(--color-bismuth-300);
+  }
+}
+@utility border-input {
+  border: 1px solid var(--color-bismuth-600);
+
+  @media (prefers-contrast: more) {
+    border-color: var(--color-bismuth-300);
+  }
+}
+@utility border-chat-bubble {
+  border: 1px solid var(--color-bismuth-700);
+}
+
+@utility ring-input {
+  --tw-ring-color: var(--color-bismuth-500);
+
+  @media (prefers-contrast: more) {
+    --tw-ring-color: var(--color-bismuth-300);
   }
 }
 

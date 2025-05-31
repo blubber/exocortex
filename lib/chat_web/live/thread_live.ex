@@ -81,7 +81,7 @@ defmodule ChatWeb.ThreadLive do
         popovertarget="model-selector"
         id="model-selector-trigger"
       >
-        <div class="overflow-hidden text-ellipsis whitespace-nowrap min-w-0 grow-1 shrink-1 basis-0">
+        <div class="overflow-hidden text-ellipsis whitespace-nowrap min-w-0 grow-1 shrink-1 basis-0 text-sm">
           {@active_model.name}
         </div>
         <div>
@@ -96,27 +96,28 @@ defmodule ChatWeb.ThreadLive do
 
   defp content(%{thread: nil} = assigns) do
     ~H"""
-    <div class="flex-1 overflow-y-auto">
-      <div class="mx-auto max-w-2xl p-2 sm:p-4">
-        <div class="bg-bismuth-900 border border-default rounded-lg w-full md:max-w-md mt-12 md:mt-24 flex flex-col gap-4 p-2 md:p-4">
-          <div class="transition-all starting:opacity-0 opacity-100 duration-250">
+    <div class="flex-1 flex justify-center items-center">
+      <div class="w-full max-w-md">
+        <div class="flex flex-col gap-8">
+          <div>
             <.title class="text-lg md:text-xl">How can I help you today?</.title>
           </div>
           <div>
             <ul>
               <li
-                :for={{{key, prompt}, i} <- Enum.with_index(@suggestions, 1)}
-                class="block transition-all starting:opacity-0 opacity-100 duration-300"
-                style={"transition-delay: #{i * 150}ms"}
+                :for={{prompt, i} <- Enum.with_index(Suggestions.suggestions())}
+                class="starting:opacity-0 duration-500"
+                style={"transition-delay: #{i * 100}ms"}
               >
-                <button
+                <.button
                   type="button"
-                  class="cursor-pointer text-sm block w-full rounded-md text-start p-3 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-transparent hover:border-default transition-all"
+                  variant="toolbar"
+                  class="text-left w-full block cursor-pointer"
                   phx-click="suggest"
-                  phx-value-suggestion={key}
+                  phx-value-suggestion={prompt}
                 >
                   {prompt}
-                </button>
+                </.button>
               </li>
             </ul>
           </div>
@@ -137,7 +138,9 @@ defmodule ChatWeb.ThreadLive do
       <div class="mx-auto max-w-2xl p-2 sm:p-4">
         <main class="flex flex-col gap-8" phx-update="stream" id="message-container">
           <div :for={{id, message} <- @streams.messages} id={id}>
-            <hr :if={message.role == :user} class="mx-16 mb-8 text-bismuth-700" />
+            <div :if={message.role == :user} class="flex items-center mb-8">
+              <div class="flex-1 h-px bg-divider"></div>
+            </div>
             <.chat_bubble
               message={message}
               id={"#{id}-container"}
@@ -154,7 +157,7 @@ defmodule ChatWeb.ThreadLive do
   defp chat_bubble(%{message: %Message{role: :user}} = assigns) do
     ~H"""
     <div class="ps-10 flex flex-col items-end">
-      <div class="bg-bismuth-600/50 rounded-lg px-3 py-2 border border-bismuth-700">
+      <div class="bg-chat-bubble border-chat-bubble px-3 py-2 rounded-xl">
         <div
           class="markdown hidden opacity-100 transition-all duration-200 starting:opacity-0"
           phx-hook="Message"
@@ -369,9 +372,6 @@ defmodule ChatWeb.ThreadLive do
   end
 
   def handle_event("suggest", %{"suggestion" => suggestion}, socket) do
-    messages =
-      Suggestions.messages(suggestion)
-
     scope = socket.assigns.current_scope
 
     model = Chat.Inference.select_model(:completion, scope)
@@ -379,11 +379,8 @@ defmodule ChatWeb.ThreadLive do
     {:ok, thread} = Threads.create_thread(scope, model, %{title: ""})
     scope = Map.put(scope, :thread, thread)
 
-    user_message =
-      Enum.reduce(messages, nil, fn attrs, _ ->
-        {:ok, user_message} = Threads.create_message(scope, model, attrs)
-        user_message
-      end)
+    {:ok, user_message} =
+      Threads.create_message(scope, model, %{role: :user, content: suggestion, status: :done})
 
     ChatWeb.ThreadServer.chat_completion(scope, user_message, model)
 

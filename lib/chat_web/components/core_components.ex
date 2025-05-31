@@ -28,9 +28,14 @@ defmodule ChatWeb.CoreComponents do
               <.title level={4}>{@title}</.title>
             </div>
             <div>
-              <.button type="button" variant="toolbar" popovertarget={@id} popovertargetaction="hide">
-                <.icon name="hero-x-mark" class="size-6 md:size-5" />
-              </.button>
+              <button
+                type="button"
+                popovertarget={@id}
+                popovertargetaction="hide"
+                class="text-close-button p-1 cursor-pointer transition-all opacity-75 hover:opacity-100"
+              >
+                <.icon name="hero-x-mark" class="size-5" />
+              </button>
             </div>
           </div>
           <div :if={@header != []}>
@@ -66,15 +71,15 @@ defmodule ChatWeb.CoreComponents do
               <.title level={4} class="text-lg">{@title}</.title>
             </div>
             <div>
-              <.button
+              <button
                 type="button"
-                variant="toolbar"
                 popovertarget={@id}
                 popovertargetaction="hide"
                 aria-label="Close alert"
+                class="text-close-button p-1 cursor-pointer transition-all opacity-75 hover:opacity-100"
               >
-                <.icon name="hero-x-mark" class="size-5 md:size-4" />
-              </.button>
+                <.icon name="hero-x-mark" class="size-5" />
+              </button>
             </div>
           </header>
 
@@ -134,7 +139,7 @@ defmodule ChatWeb.CoreComponents do
         <.title class="text-lg md:text-xl leading-8 md:leading-10">
           {render_slot(@inner_block)}
         </.title>
-        <p :if={@subtitle != []} class="text-sm text-bismuth-300/80">
+        <p :if={@subtitle != []} class="text-sm text-muted">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -188,10 +193,7 @@ defmodule ChatWeb.CoreComponents do
   end
 
   defp button_variant("toolbar") do
-    ~w(
-    transition-all
-    p-2 md:p-1.5 text-bismuth-200/85 hover:text-bismuth-200
-  )
+    ~w(transition-all p-2 md:p-1.5 text-toolbar-button)
   end
 
   defp button_variant("link") do
@@ -342,9 +344,8 @@ defmodule ChatWeb.CoreComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full outline-none ring-0 border rounded-md",
-        "px-2 py-1 focus:ring-1 focus-visible:ring-2",
-        "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
+        "block w-full outline-none ring-0 rounded-md px-2 py-1 focus:ring-1",
+        "bg-input border-input ring-input",
         @class
       ]}
       {@rest}
@@ -363,9 +364,8 @@ defmodule ChatWeb.CoreComponents do
         aria-invalid={@errors != [] && "true"}
         aria-describedby={@errors != [] && "#{@id}-error"}
         class={[
-          "block w-full outline-none ring-0 border rounded-md",
-          "px-3 py-2 focus:ring-1 focus-visible:ring-2",
-          "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
+          "block w-full outline-none ring-0 rounded-md px-2 py-1 focus:ring-1",
+          "bg-input border-input ring-input",
           @class
         ]}
         {@rest}
@@ -456,10 +456,10 @@ defmodule ChatWeb.CoreComponents do
           <div>
             <button
               type="button"
-              class="text-bismuth-200/70 hover:text-bismuth-200 cursor-pointer p-1.5"
+              class="text-close-button p-1 cursor-pointer transition-all opacity-75 hover:opacity-100"
               phx-click={JS.dispatch(":close", to: "##{@id}")}
             >
-              <.icon name="hero-x-mark" class="size-4" />
+              <.icon name="hero-x-mark" class="size-5" />
             </button>
           </div>
         </div>
