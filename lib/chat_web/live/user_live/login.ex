@@ -14,7 +14,7 @@ defmodule ChatWeb.UserLive.Login do
         </:subtitle>
       </.header>
 
-      <div class="borderborder-bismuth-700 flex flex-col gap-4 rounded-lg bg-bismuth-900 p-2 sm:p-4">
+      <div class="border-default flex flex-col gap-4 rounded-lg bg-bismuth-900 p-2 sm:p-4">
         <div :if={@state == :error} class="flex gap-6 mb-8">
           <div>
             <.icon name="hero-exclamation-circle" class="size-6 text-red-400" />

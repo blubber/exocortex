@@ -17,7 +17,7 @@ defmodule ChatWeb.UserLive.Registration do
         </:subtitle>
       </.header>
 
-      <div class="borderborder-bismuth-700 flex flex-col gap-4 rounded-lg bg-bismuth-900 p-2 sm:p-4">
+      <div class="border border-default flex flex-col gap-4 rounded-lg bg-bismuth-900 p-2 sm:p-4">
         <.form for={@form} phx-change="validate" phx-submit="save" class="contents">
           <div class="flex flex-col gap-1">
             <.label for={@form[:email].id}>Email address</.label>

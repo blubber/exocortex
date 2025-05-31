@@ -21,7 +21,7 @@ defmodule ChatWeb.CoreComponents do
       popover
       class={["p-2 md:p-4 pt-0 bg-transparent menu", @class]}
     >
-      <div class="p-2 flex flex-col gap-4 bg-bismuth-800 text-zinc-300 border border-bismuth-700 rounded-lg shadow-lg shadow-black">
+      <div class="p-2 flex flex-col gap-4 bg-default text-default border-default rounded-lg shadow-lg shadow-black">
         <header class="flex flex-col gap-1">
           <div class="flex gap-4 items-center">
             <div class="flex-1">
@@ -58,7 +58,7 @@ defmodule ChatWeb.CoreComponents do
     <div popover id={@id} {@rest} class="m-auto w-full  md:min-w-md max-w-xl p-4 bg-transparent alert">
       <.focus_wrap id={"#{@id}-focus-wrap"}>
         <div
-          class="bg-bismuth-800 text-zinc-300 flex flex-col gap-4 md:gap-6 p-4 rounded-lg border border-bismuth-700 shadow-lg shadow-black"
+          class="bg-default text-default flex flex-col gap-4 md:gap-6 p-4 rounded-lg border-default shadow-lg shadow-black"
           role="alertdialog"
         >
           <header class="flex gap-4 items-center">
@@ -99,9 +99,7 @@ defmodule ChatWeb.CoreComponents do
   def toolbar(assigns) do
     ~H"""
     <nav class={[
-      "flex gap-1",
-      "fixed top-2 left-2 border border-solid px-2 py-1 rounded-lg",
-      "bg-bismuth-900 border-bismuth-700",
+      "flex gap-1 fixed top-2 left-2 border-default px-2 py-1 rounded-lg bg-toolbar",
       @class
     ]}>
       {render_slot(@inner_block)}
@@ -344,7 +342,7 @@ defmodule ChatWeb.CoreComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full outline-none ring-0 border border-solid rounded-md",
+        "block w-full outline-none ring-0 border rounded-md",
         "px-2 py-1 focus:ring-1 focus-visible:ring-2",
         "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
         @class
@@ -365,7 +363,7 @@ defmodule ChatWeb.CoreComponents do
         aria-invalid={@errors != [] && "true"}
         aria-describedby={@errors != [] && "#{@id}-error"}
         class={[
-          "block w-full outline-none ring-0 border border-solid rounded-md",
+          "block w-full outline-none ring-0 border rounded-md",
           "px-3 py-2 focus:ring-1 focus-visible:ring-2",
           "bg-bismuth-700 border-bismuth-600 ring-bismuth-500/50 hover:border-bismuth-500",
           @class
@@ -442,8 +440,8 @@ defmodule ChatWeb.CoreComponents do
       phx-hook="Dialog"
       {@rest}
       class={[
-        "border border-solid",
-        "w-full bg-bismuth-800 border-bismuth-700 rounded-lg shadow-lg shadow-black open:flex flex-col gap-2 text-zinc-300",
+        "border",
+        "w-full bg-default text-default border-default rounded-lg shadow-lg shadow-black open:flex flex-col gap-2",
         "max-md:h-full max-md:top-[calc(1em+3px)] max-md:left-[calc(1em+3px)]",
         "md:max-w-xl md:mx-auto md:mt-12 md:max-h-[calc(100%-2em-6px-8rem)]"
       ]}

@@ -98,7 +98,7 @@ defmodule ChatWeb.ThreadLive do
     ~H"""
     <div class="flex-1 overflow-y-auto">
       <div class="mx-auto max-w-2xl p-2 sm:p-4">
-        <div class="bg-bismuth-900 border border-solid border-bismuth-700 rounded-lg w-full md:max-w-md mt-12 md:mt-24 flex flex-col gap-4 p-2 md:p-4">
+        <div class="bg-bismuth-900 border border-default rounded-lg w-full md:max-w-md mt-12 md:mt-24 flex flex-col gap-4 p-2 md:p-4">
           <div class="transition-all starting:opacity-0 opacity-100 duration-250">
             <.title class="text-lg md:text-xl">How can I help you today?</.title>
           </div>
@@ -111,7 +111,7 @@ defmodule ChatWeb.ThreadLive do
               >
                 <button
                   type="button"
-                  class="cursor-pointer text-sm block w-full rounded-md text-start p-3 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-solid border-transparent hover:border-bismuth-700 transition-all"
+                  class="cursor-pointer text-sm block w-full rounded-md text-start p-3 text-bismuth-300/90 hover:text-bismuth-100 hover:bg-bismuth-800 border border-transparent hover:border-default transition-all"
                   phx-click="suggest"
                   phx-value-suggestion={key}
                 >

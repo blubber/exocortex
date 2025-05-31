@@ -105,7 +105,6 @@ defmodule ChatWeb.ThreadServer do
 
     body =
       Completion.prepare_body(model, messages)
-      |> IO.inspect()
 
     with {:ok, body_data} <- Jason.encode(body),
          {:ok, %HTTPoison.AsyncResponse{id: id}} <-
